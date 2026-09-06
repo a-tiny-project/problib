@@ -1,0 +1,18 @@
+{
+  "checks": [
+    "Foundations.Axioms",
+    "Trust.Axioms",
+    "TrustTest"
+  ],
+  "executables": [],
+  "language": "lean",
+  "library": true,
+  "name": "foundations",
+  "paper": false,
+  "root": ".",
+  "targets": [
+    "Foundations"
+  ],
+  "tests": [],
+  "version": "v26.9.0"
+}

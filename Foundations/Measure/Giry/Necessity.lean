@@ -1,0 +1,44 @@
+import Foundations.Measure.Giry.Monad
+
+set_option autoImplicit false
+
+namespace Foundations.Measure.Giry.Necessity
+
+open Foundations.Real
+
+/-- A family of Dirac point laws on discrete `Bool`, indexed by `Bool`. -/
+noncomputable def pointLaws : Bool → Law (Space.discrete Bool) :=
+  pure (Space.discrete Bool)
+
+/-- The family of point laws is not measurable when the domain `Bool` is
+equipped with the indiscrete sigma-algebra. -/
+theorem pointLaws_not_measurable :
+    ¬MeasurableMap (Space.indiscrete Bool) (space (Space.discrete Bool)) pointLaws := by
+  intro measurable
+  have accepted := ((measurable_iff pointLaws).mp measurable
+    (region := fun value => value = true) True.intro) ENNReal.zero
+  have trueMember : ENNReal.lt ENNReal.zero ((pointLaws true).val (fun value => value = true)) := by
+    change ENNReal.lt ENNReal.zero ((Measure.dirac (Space.discrete Bool) true) _)
+    rw [Measure.dirac_apply_of_mem (Space.discrete Bool) true
+      (set := fun value => value = true) True.intro rfl]
+    exact ENNReal.zeroLtIffNeZero.mpr ENNReal.oneNeZero
+  have falseAbsent : ¬ENNReal.lt ENNReal.zero ((pointLaws false).val (fun value => value = true)) := by
+    change ¬ENNReal.lt ENNReal.zero ((Measure.dirac (Space.discrete Bool) false) _)
+    rw [Measure.dirac_apply_of_not_mem (Space.discrete Bool) false
+      (set := fun value => value = true) True.intro Bool.false_ne_true]
+    exact fun positive => ENNReal.zeroLtIffNeZero.mp positive rfl
+  rcases (Space.indiscrete_measurable_iff _).mp accepted with empty | whole
+  · have absent := congrArg (fun region => region true) empty
+    exact absent.mp trueMember
+  · have member := congrArg (fun region => region false) whole
+    exact falseAbsent (member.mpr True.intro)
+
+/-- Refutation: fiberwise probability measures do not imply joint measurability
+of the law family. This refutes replacing joint kernel/law-family measurability
+by pointwise normalization. -/
+theorem probability_fibers_do_not_imply_measurability :
+    (∀ point, Measure.IsProbability (pointLaws point).val) ∧
+      ¬MeasurableMap (Space.indiscrete Bool) (space (Space.discrete Bool)) pointLaws :=
+  ⟨fun point => (pointLaws point).property, pointLaws_not_measurable⟩
+
+end Foundations.Measure.Giry.Necessity
