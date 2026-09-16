@@ -1,3 +1,4 @@
+import Foundations.QuasiBorel.Domain
 import Foundations.QuasiBorel.CartesianClosed
 import Foundations.QuasiBorel.Example
 import Foundations.QuasiBorel.FiniteProbability
@@ -5,3 +6,7 @@ import Foundations.QuasiBorel.Measurable
 import Foundations.QuasiBorel.Measurable.StandardBorel
 import Foundations.QuasiBorel.Source
 import Foundations.QuasiBorel.Space
+import Foundations.QuasiBorel.Subtype
+import Foundations.QuasiBorel.Pi
+import Foundations.QuasiBorel.Initial
+import Foundations.QuasiBorel.Sum.Laws

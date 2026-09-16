@@ -4,12 +4,14 @@
   outputs =
     { self, nixpkgs }:
     let
-      systems = [
-        "x86_64-linux"
-        "aarch64-linux"
-        "x86_64-darwin"
-        "aarch64-darwin"
-      ];
+      release = builtins.fromJSON (builtins.readFile ./release.json);
+      systems =
+        release.systems or [
+          "x86_64-linux"
+          "aarch64-linux"
+          "x86_64-darwin"
+          "aarch64-darwin"
+        ];
       eachSystem = nixpkgs.lib.genAttrs systems;
       products = eachSystem (
         system:
@@ -19,7 +21,7 @@
             config.allowDeprecatedx86_64Darwin = true;
           };
           src = self;
-          release = builtins.fromJSON (builtins.readFile ./release.json);
+          inherit release;
         }
       );
     in

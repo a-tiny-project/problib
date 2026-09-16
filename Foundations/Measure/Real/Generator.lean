@@ -2,6 +2,8 @@ module
 
 public import Foundations.Measure.Real.Borel
 public import Foundations.Measure.Dynkin.Basic
+public import Foundations.Measure.Space.Generator
+import Foundations.Real.Basis
 
 set_option autoImplicit false
 
@@ -11,6 +13,53 @@ open Foundations.Real
 open Foundations.Real.Construction
 
 public section
+
+/-- Countable generator for the Borel σ-algebra on the real line consisting of rational
+open lower rays `(-∞, q)`. -/
+noncomputable def countableGenerator : Space.CountableGenerator borel where
+  sets := fun index => Iio (Dedekind.rationalBasis index)
+  generated := by
+    classical
+    let generated := Space.generated (fun set => ∃ index, Iio (Dedekind.rationalBasis index) = set)
+    have rays (upper : Carrier) : generated.Measurable (Iio upper) := by
+      let sets : Nat → Set Carrier := fun index =>
+        if Dedekind.lt (Dedekind.rationalBasis index) upper then
+          Iio (Dedekind.rationalBasis index) else Set.empty
+      have equal : Iio upper = Set.iUnion sets := by
+        apply Set.ext
+        intro value
+        constructor
+        · intro below
+          rcases Dedekind.existsRationalBasisBetween below with ⟨index, above, less⟩
+          exact ⟨index, by simpa only [sets, if_pos less, Iio] using above⟩
+        · rintro ⟨index, member⟩
+          by_cases below : Dedekind.lt (Dedekind.rationalBasis index) upper
+          · simp only [sets, if_pos below] at member
+            exact ltTrans member below
+          · simp only [sets, if_neg below] at member
+            exact False.elim member
+      rw [equal]
+      apply generated.iUnion
+      intro index
+      by_cases below : Dedekind.lt (Dedekind.rationalBasis index) upper
+      · simp only [sets, if_pos below]
+        exact Space.generated_contains ⟨index, rfl⟩
+      · simp only [sets, if_neg below]
+        exact generated.empty
+    have identity : MeasurableMap generated borel (fun value => value) :=
+      measurableMap_borel_iff_Iio.mpr rays
+    apply Space.ext
+    intro region
+    constructor
+    · exact identity
+    · apply Space.generated_minimal borel
+      rintro set ⟨index, rfl⟩
+      exact measurable_Iio _
+
+/-- Countable generator for the Borel σ-algebra on the unit interval obtained by
+pulling back rational rays along unit inclusion. -/
+noncomputable def unitCountableGenerator : Space.CountableGenerator unitBorel :=
+  countableGenerator.comap unitInclusion
 
 /-- The family of closed initial intervals `[0, point]` in the unit interval. -/
 @[expose] def unitInitials : Set (Set UnitInterval) :=

@@ -1,8 +1,14 @@
 import Foundations.Measure.Embedding
+import Foundations.Measure.Embedding.Generator
 import Foundations.Measure.Embedding.Necessity
 import Trust.Command
 
 #register_trust_claims allowing [propext, Quot.sound, Classical.choice] claims [
+  Foundations.Measure.MeasurableEmbedding.inl,
+  Foundations.Measure.MeasurableEmbedding.inr,
+  Foundations.Measure.MeasurableEmbedding.inl_apply,
+  Foundations.Measure.MeasurableEmbedding.inr_apply,
+  Foundations.Measure.MeasurableEmbedding.countableGenerator,
   Foundations.Measure.MeasurableEmbedding.retract,
   Foundations.Measure.MeasurableEmbedding.retract_forward,
   Foundations.Measure.MeasurableEmbedding.retract_measurable,

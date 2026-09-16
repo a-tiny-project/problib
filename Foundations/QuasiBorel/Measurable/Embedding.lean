@@ -44,6 +44,17 @@ theorem Space.toMeasurable_ofEmbedding {source : Foundations.Measure.Space Ω}
       exact target.empty
   · intro measurable random randomMeasurable
     exact randomMeasurable measurable
+/-- Every quasi-Borel morphism whose domain measurably embeds into the random
+source induces a measurable map into the codomain's induced measurable space. -/
+theorem Hom.toMeasurable_ofEmbedding {source : Foundations.Measure.Space Ω}
+    {domain : Foundations.Measure.Space α} {codomain : Space (Source.ofMeasurable source)}
+    (embedding : MeasurableEmbedding domain source)
+    (morphism : Hom (Space.ofMeasurable source domain) codomain) :
+    MeasurableMap domain codomain.toMeasurable morphism := by
+  have measured : MeasurableMap (Space.ofMeasurable source domain).toMeasurable
+      codomain.toMeasurable morphism := morphism.toMeasurable
+  rw [Space.toMeasurable_ofEmbedding embedding] at measured
+  exact @measured
 
 /-- Every quasi-Borel morphism whose domain measurably embeds into the random
 source has a measurable underlying function. -/

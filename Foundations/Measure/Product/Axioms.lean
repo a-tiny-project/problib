@@ -1,7 +1,12 @@
 import Foundations.Measure.Product.Generator
+import Foundations.Measure.Product.Countable
 import Trust.Command
+import Foundations.Measure.Product.Selection
 
 #register_trust_claims allowing [propext, Quot.sound, Classical.choice] claims [
+  Foundations.Measure.Space.selectedSet_measurable,
+  Foundations.Measure.MeasurableMap.uncurry_ofCountableFirst,
+  Foundations.Measure.MeasurableMap.uncurry_measurable_iff_ofCountableFirst,
   Foundations.Measure.Space.rectangle_piSystem,
   Foundations.Measure.Space.rectangle_contains_univ,
   Foundations.Measure.Space.first_measurable,

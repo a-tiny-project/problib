@@ -4,27 +4,42 @@ public import Std
 
 set_option autoImplicit false
 
-namespace Foundations.Real
+/-!
+# Countable bijections and natural pairing
 
-public structure Bijection (α β : Type) where
+Defines universe-polymorphic bijections, Cantor pairing on `Nat × Nat` with
+stepwise and diagonal characterizations, decoder bounds, and the canonical
+`Bijection Nat (Nat × Nat)`.
+-/
+
+namespace Foundations.Countable
+
+universe u v
+
+/-- A universe-polymorphic bijection between two types, given by mutually inverse maps. -/
+public structure Bijection (α : Type u) (β : Type v) where
   forward : α → β
   inverse : β → α
   inverseForward : ∀ value, inverse (forward value) = value
   forwardInverse : ∀ value, forward (inverse value) = value
 
-namespace NatProductBijection
+namespace Pair
 
+/-- Diagonal triangular number $\Delta(n) = n(n+1)/2$, giving the start index of the $n$-th diagonal. -/
 @[expose] public def diagonal : Nat → Nat
   | 0 => 0
   | index + 1 => diagonal index + index + 1
 
+/-- Cantor pairing encoding mapping a pair $(i, j) \in \mathbb{N} \times \mathbb{N}$ to a single natural number. -/
 @[expose] public def encode (pair : Nat × Nat) : Nat :=
   diagonal (pair.1 + pair.2) + pair.1
 
+/-- Successor step on pairs traversing diagonal lines. -/
 @[expose] public def next : Nat × Nat → Nat × Nat
   | (first, 0) => (0, first + 1)
   | (first, second + 1) => (first + 1, second)
 
+/-- Decoding map from a natural index to a pair $(i, j)$ by iterating `next`. -/
 @[expose] public def decode : Nat → Nat × Nat
   | 0 => (0, 0)
   | index + 1 => next (decode index)
@@ -76,6 +91,7 @@ public theorem encodeNext (pair : Nat × Nat) :
           rw [sameDiagonal]
           omega
 
+/-- Decoding followed by encoding is the identity on natural numbers. -/
 public theorem encodeDecode (index : Nat) :
     encode (decode index) = index := by
   induction index with
@@ -150,17 +166,45 @@ public theorem encodeInjective {left right : Nat × Nat}
             omega
           rw [firstEqual, secondEqual]
 
+/-- Encoding followed by decoding is the identity on pairs of natural numbers. -/
 public theorem decodeEncode (pair : Nat × Nat) :
     decode (encode pair) = pair := by
   apply encodeInjective
   exact encodeDecode (encode pair)
 
-end NatProductBijection
+/-- Both components of a decoded index are bounded by the index itself. -/
+public theorem decodeBounds (index : Nat) :
+    (decode index).1 ≤ index ∧ (decode index).2 ≤ index := by
+  induction index with
+  | zero => exact ⟨Nat.le_refl _, Nat.le_refl _⟩
+  | succ index induction =>
+      rw [decode]
+      cases equal : decode index with
+      | mk first second =>
+          rw [equal] at induction
+          cases second with
+          | zero =>
+              simp only [next] at *
+              omega
+          | succ second =>
+              simp only [next] at *
+              omega
 
-@[expose] public def natProductBijection : Bijection Nat (Nat × Nat) where
-  forward := NatProductBijection.decode
-  inverse := NatProductBijection.encode
-  inverseForward := NatProductBijection.encodeDecode
-  forwardInverse := NatProductBijection.decodeEncode
+/-- The first component of a decoded index is bounded by the index itself. -/
+public theorem decodeFirstLe (index : Nat) : (decode index).1 ≤ index :=
+  (decodeBounds index).1
 
-end Foundations.Real
+/-- The second component of a decoded index is bounded by the index itself. -/
+public theorem decodeSecondLe (index : Nat) : (decode index).2 ≤ index :=
+  (decodeBounds index).2
+
+end Pair
+
+/-- Canonical bijection between `Nat` and `Nat × Nat` through Cantor pairing. -/
+@[expose] public def pairBijection : Bijection Nat (Nat × Nat) where
+  forward := Pair.decode
+  inverse := Pair.encode
+  inverseForward := Pair.encodeDecode
+  forwardInverse := Pair.decodeEncode
+
+end Foundations.Countable

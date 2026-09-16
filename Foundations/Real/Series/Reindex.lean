@@ -1,17 +1,17 @@
 module
 
-public import Foundations.Real.Series.Bijection
+public import Foundations.Countable.Bijection
 public import Foundations.Real.Series.Convergence
 
 set_option autoImplicit false
 
 namespace Foundations.Real.ENNReal
 
-private def reindexMatrix (equivalence : Bijection Nat Nat)
+private def reindexMatrix (equivalence : Countable.Bijection Nat Nat)
     (values : Nat → ENNReal) (row column : Nat) : ENNReal :=
   if column = equivalence.forward row then values column else zero
 
-public theorem tsumReindex (equivalence : Bijection Nat Nat)
+public theorem tsumReindex (equivalence : Countable.Bijection Nat Nat)
     (values : Nat → ENNReal) :
     tsum (fun index => values (equivalence.forward index)) =
       tsum values := by
@@ -66,19 +66,19 @@ public theorem tsumReindex (equivalence : Bijection Nat Nat)
 @[expose] public def flatten (values : Nat → Nat → ENNReal) :
     Nat → ENNReal :=
   fun index =>
-    let pair := NatProductBijection.decode index
+    let pair := Countable.Pair.decode index
     values pair.1 pair.2
 
 private def encodedEntry (values : Nat → Nat → ENNReal)
     (row column flatIndex : Nat) : ENNReal :=
-  if flatIndex = NatProductBijection.encode (row, column) then
+  if flatIndex = Countable.Pair.encode (row, column) then
     values row column
   else
     zero
 
 private def rowSlice (values : Nat → Nat → ENNReal)
     (row flatIndex : Nat) : ENNReal :=
-  if (NatProductBijection.decode flatIndex).1 = row then
+  if (Countable.Pair.decode flatIndex).1 = row then
     flatten values flatIndex
   else
     zero
@@ -89,7 +89,7 @@ private theorem encodedEntryColumnEvaluation
       values row column := by
   have equal :
       (fun flatIndex => encodedEntry values row column flatIndex) =
-        single (NatProductBijection.encode (row, column))
+        single (Countable.Pair.encode (row, column))
           (values row column) := by
     funext flatIndex
     simp [encodedEntry, single]
@@ -99,40 +99,40 @@ private theorem encodedEntryFlatEvaluation
     (values : Nat → Nat → ENNReal) (row flatIndex : Nat) :
     tsum (fun column => encodedEntry values row column flatIndex) =
       rowSlice values row flatIndex := by
-  by_cases belongs : (NatProductBijection.decode flatIndex).1 = row
+  by_cases belongs : (Countable.Pair.decode flatIndex).1 = row
   · have equal :
         (fun column => encodedEntry values row column flatIndex) =
-          single (NatProductBijection.decode flatIndex).2
+          single (Countable.Pair.decode flatIndex).2
             (flatten values flatIndex) := by
       funext column
       by_cases atIndex :
-          column = (NatProductBijection.decode flatIndex).2
+          column = (Countable.Pair.decode flatIndex).2
       · subst column
         have pairEqual :
-            (row, (NatProductBijection.decode flatIndex).2) =
-              NatProductBijection.decode flatIndex := by
+            (row, (Countable.Pair.decode flatIndex).2) =
+              Countable.Pair.decode flatIndex := by
           apply Prod.ext
           · exact belongs.symm
           · rfl
         have encoded :
-            NatProductBijection.encode
-                (row, (NatProductBijection.decode flatIndex).2) =
+            Countable.Pair.encode
+                (row, (Countable.Pair.decode flatIndex).2) =
               flatIndex := by
-          rw [pairEqual, NatProductBijection.encodeDecode]
+          rw [pairEqual, Countable.Pair.encodeDecode]
         unfold encodedEntry single flatten
         rw [if_pos encoded.symm, if_pos rfl]
-        change values row (NatProductBijection.decode flatIndex).2 =
-          values (NatProductBijection.decode flatIndex).1
-            (NatProductBijection.decode flatIndex).2
+        change values row (Countable.Pair.decode flatIndex).2 =
+          values (Countable.Pair.decode flatIndex).1
+            (Countable.Pair.decode flatIndex).2
         rw [belongs]
       · have notEncoded :
-            flatIndex ≠ NatProductBijection.encode (row, column) := by
+            flatIndex ≠ Countable.Pair.encode (row, column) := by
           intro encoded
           have decodedEqual :
-              NatProductBijection.decode flatIndex = (row, column) := by
-            rw [encoded, NatProductBijection.decodeEncode]
+              Countable.Pair.decode flatIndex = (row, column) := by
+            rw [encoded, Countable.Pair.decodeEncode]
           have secondEqual :
-              (NatProductBijection.decode flatIndex).2 = column :=
+              (Countable.Pair.decode flatIndex).2 = column :=
             congrArg Prod.snd decodedEqual
           exact atIndex secondEqual.symm
         simp [encodedEntry, single, atIndex, notEncoded]
@@ -142,12 +142,12 @@ private theorem encodedEntryFlatEvaluation
         encodedEntry values row column flatIndex = zero := by
       intro column
       have notEncoded :
-          flatIndex ≠ NatProductBijection.encode (row, column) := by
+          flatIndex ≠ Countable.Pair.encode (row, column) := by
         intro encoded
         apply belongs
         have decodedEqual :
-            NatProductBijection.decode flatIndex = (row, column) := by
-          rw [encoded, NatProductBijection.decodeEncode]
+            Countable.Pair.decode flatIndex = (row, column) := by
+          rw [encoded, Countable.Pair.decodeEncode]
         exact congrArg Prod.fst decodedEqual
       simp [encodedEntry, notEncoded]
     calc
@@ -183,14 +183,14 @@ private theorem rowPartitionEvaluation
       flatten values flatIndex := by
   have equal :
       (fun row => rowSlice values row flatIndex) =
-        single (NatProductBijection.decode flatIndex).1
+        single (Countable.Pair.decode flatIndex).1
           (flatten values flatIndex) := by
     funext row
-    by_cases atIndex : row = (NatProductBijection.decode flatIndex).1
+    by_cases atIndex : row = (Countable.Pair.decode flatIndex).1
     · subst row
       simp [rowSlice, single]
     · have reverse :
-          (NatProductBijection.decode flatIndex).1 ≠ row :=
+          (Countable.Pair.decode flatIndex).1 ≠ row :=
         fun equal => atIndex equal.symm
       simp [rowSlice, single, atIndex, reverse]
   rw [equal, tsumSingle]

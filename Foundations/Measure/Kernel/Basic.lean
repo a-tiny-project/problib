@@ -187,7 +187,7 @@ public theorem sum_add (left right : Nat → Kernel source target) :
     (kernels : Nat → Nat → Kernel source target) :
     Nat → Kernel source target :=
   fun index =>
-    let pair := NatProductBijection.decode index
+    let pair := Countable.Pair.decode index
     kernels pair.1 pair.2
 
 public theorem sum_double
@@ -334,8 +334,8 @@ public noncomputable def sum (kernels : Nat → Kernel source target)
     (fun row column => (finite row).components column)
   finite := by
     intro index
-    exact (finite (NatProductBijection.decode index).1).finite
-      (NatProductBijection.decode index).2
+    exact (finite (Countable.Pair.decode index).1).finite
+      (Countable.Pair.decode index).2
   sum_eq := by
     rw [Kernel.sum_double]
     apply congrArg Kernel.sum

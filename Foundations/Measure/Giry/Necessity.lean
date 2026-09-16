@@ -1,4 +1,5 @@
 import Foundations.Measure.Giry.Monad
+import Foundations.Measure.Giry.StandardBorel
 
 set_option autoImplicit false
 
@@ -40,5 +41,17 @@ theorem probability_fibers_do_not_imply_measurability :
     (∀ point, Measure.IsProbability (pointLaws point).val) ∧
       ¬MeasurableMap (Space.indiscrete Bool) (space (Space.discrete Bool)) pointLaws :=
   ⟨fun point => (pointLaws point).property, pointLaws_not_measurable⟩
+
+/-- The Giry probability law space on an empty carrier is standard Borel. -/
+theorem emptyLawSpace_standardBorel :
+    Nonempty (StandardBorel (space (Space.discrete Empty))) :=
+  ⟨standardBorel (StandardBorel.ofEmpty (fun ⟨point⟩ => nomatch point))⟩
+
+/-- The Giry probability law space on an empty carrier has an empty carrier
+because probability measures require a nonempty carrier. -/
+theorem emptyLawSpace_empty : ¬Nonempty (Law (Space.discrete Empty)) := by
+  rintro ⟨law⟩
+  obtain ⟨point⟩ := law.property.nonempty
+  exact nomatch point
 
 end Foundations.Measure.Giry.Necessity

@@ -1,6 +1,6 @@
 import Foundations.Measure.Giry.Kernel
 import Foundations.Measure.Kernel.Composition
-import Foundations.Measure.Integral.Lebesgue.Transport
+import Foundations.Measure.Kernel.Composition.Bind.Transport
 
 set_option autoImplicit false
 
@@ -176,11 +176,8 @@ theorem bind_map (law : Law source) (function : α → β)
     bind (map function functionMeasurable law) family familyMeasurable =
       bind law (fun point => family (function point))
         (MeasurableMap.comp familyMeasurable functionMeasurable) := by
-  apply ext
-  intro region regionMeasurable
-  rw [bind_apply _ _ _ regionMeasurable, bind_apply _ _ _ regionMeasurable]
-  exact Foundations.Measure.lintegral_map law.val function functionMeasurable
-    ((measurable_iff family).mp familyMeasurable regionMeasurable)
+  apply Subtype.ext
+  exact Measure.bind_map law.val function functionMeasurable (toKernel family familyMeasurable)
 
 /-- Pushing forward a bound law along a measurable function commutes with
 continuation postcomposition. -/
@@ -190,14 +187,8 @@ theorem map_bind (law : Law source) (family : α → Law target)
     map function functionMeasurable (bind law family familyMeasurable) =
       bind law (fun point => map function functionMeasurable (family point))
         (MeasurableMap.comp (map_measurable function functionMeasurable) familyMeasurable) := by
-  apply ext
-  intro region regionMeasurable
-  change ((bind law family familyMeasurable).val.map function functionMeasurable) region = _
-  rw [Measure.map_apply _ _ _ regionMeasurable, bind_apply _ _ _ (functionMeasurable regionMeasurable),
-    bind_apply _ _ _ regionMeasurable]
-  apply lintegral_congr
-  intro input
-  exact (Measure.map_apply (family input).val function functionMeasurable regionMeasurable).symm
+  apply Subtype.ext
+  exact Measure.map_bind law.val (toKernel family familyMeasurable) function functionMeasurable
 
 /-- The kernel associated with the Dirac unit is the deterministic identity
 kernel. -/

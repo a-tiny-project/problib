@@ -53,27 +53,32 @@ public theorem defect_iInter_le {left right : Measure space}
     ENNReal.addRightComm bound _ _, ENNReal.addAssoc] at limit
   exact ENNReal.subLeIffLeAdd.mpr limit
 
-/-- For any two finite measures, there exists a measurable region that achieves
-the maximal score across all measurable sets. -/
-public theorem exists_maximizer {left right : Measure space}
-    (leftFinite : IsFinite left) (rightFinite : IsFinite right) :
-    ∃ region, space.Measurable region ∧
-      ∀ other, space.Measurable other →
-        ENNReal.le (score left right other) (score left right region) := by
-  classical
-  rcases ENNReal.existsPositiveSummableError ENNReal.one True.intro
-    ENNReal.onePositive with ⟨errors, positive, summable⟩
-  have errorsFinite : ENNReal.Finite (ENNReal.tsum errors) :=
-    ENNReal.finiteOfLe summable True.intro
-  have choices := fun index => exists_defect_le leftFinite rightFinite (positive index)
-  let sets : Nat → Set alpha := fun index => Classical.choose (choices index)
-  have properties := fun index => Classical.choose_spec (choices index)
+/-- Liminf (lower limit set) $\bigcup_m \bigcap_{n \ge m} A_n$ of a sequence of sets. -/
+@[expose] public def limitSet (sets : Nat → Set alpha) : Set alpha :=
+  Set.iUnion (fun start => Set.iInter (fun index => sets (start + index)))
+
+/-- Measurability of the lower limit set of a sequence of measurable sets. -/
+public theorem limitSet_measurable (sets : Nat → Set alpha)
+    (measurable : ∀ index, space.Measurable (sets index)) :
+    space.Measurable (limitSet sets) :=
+  space.iUnion (fun start => space.iInter (fun index => measurable (start + index)))
+
+/-- The lower limit set of an approximating sequence with summable defects achieves
+maximal Hahn score against any measurable set. -/
+public theorem score_le_limitSet {left right : Measure space}
+    (leftFinite : IsFinite left) (rightFinite : IsFinite right)
+    (sets : Nat → Set alpha)
+    (measurable : ∀ index, space.Measurable (sets index))
+    (errors : Nat → ENNReal) (errorsFinite : ENNReal.Finite (ENNReal.tsum errors))
+    (bounds : ∀ index, ENNReal.le (defect left right (sets index)) (errors index))
+    {other : Set alpha} (otherMeasurable : space.Measurable other) :
+    ENNReal.le (score left right other) (score left right (limitSet sets)) := by
   have prefixMeasurable (start : Nat) :
       ∀ count, space.Measurable (Set.prefixInter (fun index => sets (start + index)) count) := by
     intro count
     induction count with
     | zero => exact space.univ
-    | succ count induction => exact space.inter induction (properties (start + count)).1
+    | succ count induction => exact space.inter induction (measurable (start + count))
   have prefixBound (start : Nat) : ∀ count,
       ENNReal.le (defect left right
         (Set.prefixInter (fun index => sets (start + index)) (count + 1)))
@@ -84,16 +89,16 @@ public theorem exists_maximizer {left right : Measure space}
         change ENNReal.le (defect left right (Set.inter Set.univ (sets start)))
           (ENNReal.add ENNReal.zero (errors start))
         rw [Set.inter_univ_left, ENNReal.zeroAdd]
-        exact (properties start).2
+        exact bounds start
     | succ count induction =>
         apply ENNReal.leTrans
           (defect_inter_le leftFinite rightFinite (prefixMeasurable start (count + 1))
-            (properties (start + (count + 1))).1)
-        exact ENNReal.addLeAdd induction (properties (start + (count + 1))).2
+            (measurable (start + (count + 1))))
+        exact ENNReal.addLeAdd induction (bounds (start + (count + 1)))
   let regions : Nat → Set alpha :=
     fun start => Set.iInter (fun index => sets (start + index))
   have regionsMeasurable : ∀ start, space.Measurable (regions start) :=
-    fun start => space.iInter (fun index => (properties (start + index)).1)
+    fun start => space.iInter (fun index => measurable (start + index))
   have regionsBound : ∀ start, ENNReal.le (defect left right (regions start))
       (ENNReal.tsum (fun index => errors (start + index))) := by
     intro start
@@ -145,7 +150,27 @@ public theorem exists_maximizer {left right : Measure space}
       (fun index => space.complement (regionsMeasurable index)) complementAntitone
       (rightFinite.apply (Set.complement (regions 0))),
     ← Set.complement_iUnion] at limit
-  exact ⟨Set.iUnion regions, space.iUnion regionsMeasurable,
-    fun other measurable => ENNReal.leTrans (score_le_supremum left right measurable) limit⟩
+  exact ENNReal.leTrans (score_le_supremum left right otherMeasurable) limit
+
+
+/-- For any two finite measures, there exists a measurable region that achieves
+the maximal score across all measurable sets. -/
+public theorem exists_maximizer {left right : Measure space}
+    (leftFinite : IsFinite left) (rightFinite : IsFinite right) :
+    ∃ region, space.Measurable region ∧
+      ∀ other, space.Measurable other →
+        ENNReal.le (score left right other) (score left right region) := by
+  classical
+  rcases ENNReal.existsPositiveSummableError ENNReal.one True.intro
+    ENNReal.onePositive with ⟨errors, positive, summable⟩
+  have errorsFinite : ENNReal.Finite (ENNReal.tsum errors) :=
+    ENNReal.finiteOfLe summable True.intro
+  have choices := fun index => exists_defect_le leftFinite rightFinite (positive index)
+  let sets : Nat → Set alpha := fun index => Classical.choose (choices index)
+  have properties := fun index => Classical.choose_spec (choices index)
+  exact ⟨limitSet sets, limitSet_measurable sets (fun index => (properties index).1),
+    fun _ measurable => score_le_limitSet leftFinite rightFinite sets
+      (fun index => (properties index).1) errors errorsFinite
+      (fun index => (properties index).2) measurable⟩
 
 end Foundations.Measure.Measure.Hahn

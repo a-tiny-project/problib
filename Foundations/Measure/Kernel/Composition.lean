@@ -160,8 +160,8 @@ public noncomputable def comp {first : Kernel source middle}
   finite := by
     intro index
     exact IsFinite.comp
-      (firstFinite.finite (NatProductBijection.decode index).1)
-      (secondFinite.finite (NatProductBijection.decode index).2)
+      (firstFinite.finite (Countable.Pair.decode index).1)
+      (secondFinite.finite (Countable.Pair.decode index).2)
   sum_eq := by
     apply Kernel.ext
     intro input

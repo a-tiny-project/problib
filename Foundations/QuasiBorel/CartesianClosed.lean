@@ -1,12 +1,16 @@
-import Foundations.QuasiBorel.Space
+module
+
+public import Foundations.QuasiBorel.Space
 
 namespace Foundations.QuasiBorel
+
+public section
 
 universe u
 
 namespace Space
 
-@[reducible] def exponential {Ω : Type u} {source : Source Ω}
+@[reducible, expose] def exponential {Ω : Type u} {source : Source Ω}
     (domain codomain : Space source) : Space source where
   Carrier := Hom domain codomain
   Random := fun family =>
@@ -31,7 +35,7 @@ namespace Space
       (source.partitionReparam partitionMeasurable randomPairValid.1)
       (fun index => branchesRandom index randomPairValid)
 
-def evaluate {Ω : Type u} {source : Source Ω} (domain codomain : Space source) :
+@[expose] def evaluate {Ω : Type u} {source : Source Ω} (domain codomain : Space source) :
     Hom (product (exponential domain codomain) domain) codomain where
   toFun := fun pair => pair.1 pair.2
   mapRandom := by
@@ -40,7 +44,7 @@ def evaluate {Ω : Type u} {source : Source Ω} (domain codomain : Space source)
       (randomPair := fun value => (value, (randomPair value).2))
       ⟨source.identity, randomPairValid.2⟩
 
-def curry {Ω : Type u} {source : Source Ω} {parameter domain codomain : Space source}
+@[expose] def curry {Ω : Type u} {source : Source Ω} {parameter domain codomain : Space source}
     (morphism : Hom (product parameter domain) codomain) :
     Hom parameter (exponential domain codomain) where
   toFun := fun parameterValue => {
@@ -53,7 +57,7 @@ def curry {Ω : Type u} {source : Source Ω} {parameter domain codomain : Space 
     apply morphism.mapRandom
     exact ⟨parameter.reparam randomPairValid.1 parameterRandomValid, randomPairValid.2⟩
 
-def uncurry {Ω : Type u} {source : Source Ω} {parameter domain codomain : Space source}
+@[expose] def uncurry {Ω : Type u} {source : Source Ω} {parameter domain codomain : Space source}
     (morphism : Hom parameter (exponential domain codomain)) :
     Hom (product parameter domain) codomain :=
   Hom.comp (evaluate domain codomain)
@@ -94,5 +98,7 @@ theorem curry_uncurry {Ω : Type u} {source : Source Ω}
   rfl
 
 end Space
+
+end
 
 end Foundations.QuasiBorel

@@ -151,4 +151,24 @@ public noncomputable def unit : StandardBorel (Space.discrete Unit) :=
     cases right
     rfl)
 
+/-- Standard Borel structure on an empty space without global inhabitant
+assumptions. -/
+@[expose] public noncomputable def ofEmpty {alpha : Type u} {space : Space alpha}
+    (empty : ¬Nonempty alpha) : StandardBorel space := by
+  have discrete : space = Space.discrete alpha := by
+    apply Space.ext
+    intro region
+    constructor
+    · intro _
+      trivial
+    · intro _
+      have equal : region = Set.empty := by
+        apply Set.ext
+        intro point
+        exact False.elim (empty ⟨point⟩)
+      rw [equal]
+      exact space.empty
+  rw [discrete]
+  exact ofNatInjection (fun _ => 0) (fun left _ _ => False.elim (empty ⟨left⟩))
+
 end Foundations.Measure.StandardBorel

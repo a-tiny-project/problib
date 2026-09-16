@@ -2,6 +2,9 @@ import Foundations.Measure.Integral.Lebesgue
 import Trust.Command
 
 #register_trust_claims allowing [propext, Quot.sound, Classical.choice] claims [
+  Foundations.Measure.Measure.eq_iff_lintegral,
+  Foundations.Measure.lintegral_comap,
+  Foundations.Measure.lintegral_comap_of_zero_outside,
   Foundations.Measure.lintegral_smul_measure,
   Foundations.Measure.lintegral_piecewise,
   Foundations.Measure.lintegral_sub,

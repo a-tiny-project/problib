@@ -186,8 +186,8 @@ public noncomputable def sum (measures : Nat → Measure space)
     (fun row column => (finite row).components column)
   finite := by
     intro index
-    exact (finite (NatProductBijection.decode index).1).finite
-      (NatProductBijection.decode index).2
+    exact (finite (Countable.Pair.decode index).1).finite
+      (Countable.Pair.decode index).2
   sum_eq := by
     rw [Measure.sum_double]
     apply congrArg Measure.sum

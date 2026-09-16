@@ -24,7 +24,9 @@ universe u
 
 variable {alpha : Type u} {space : Space alpha}
 
-private theorem positiveOfMaximal {left right : Measure space}
+/-- A measurable region maximizing the Hahn score is positive for the signed
+measure difference `left - right`. -/
+public theorem Hahn.positive_of_maximal {left right : Measure space}
     (leftFinite : IsFinite left) (rightFinite : IsFinite right)
     {region : Set alpha} (regionMeasurable : space.Measurable region)
     (maximal : ∀ other, space.Measurable other →
@@ -59,24 +61,34 @@ private theorem positiveOfMaximal {left right : Measure space}
   exact ENNReal.leOfAddLeAddLeftOfFinite (Hahn.score_finite leftFinite rightFinite region)
     comparison
 
+/-- Constructs a Hahn decomposition from any measurable region maximizing the Hahn
+score between two finite measures. -/
+@[expose] public def HahnDecomposition.ofMaximal {left right : Measure space}
+    (leftFinite : IsFinite left) (rightFinite : IsFinite right)
+    (region : Set alpha) (measurable : space.Measurable region)
+    (maximal : ∀ other, space.Measurable other →
+      ENNReal.le (Hahn.score left right other) (Hahn.score left right region)) :
+    HahnDecomposition left right := by
+  refine {
+    region := region
+    measurable := measurable
+    positive := Hahn.positive_of_maximal leftFinite rightFinite measurable maximal
+    negative := ?_
+  }
+  apply Hahn.positive_of_maximal rightFinite leftFinite (space.complement measurable)
+  intro other otherMeasurable
+  have comparison := maximal (Set.complement other) (space.complement otherMeasurable)
+  rw [Hahn.score_complement] at comparison
+  rw [Hahn.score_complement]
+  exact comparison
+
 /-- For any two finite measures, there exists a Hahn decomposition separating
 the space into regions where each measure dominates the other. -/
 public theorem exists_hahnDecomposition {left right : Measure space}
     (leftFinite : IsFinite left) (rightFinite : IsFinite right) :
     Nonempty (HahnDecomposition left right) := by
   rcases Hahn.exists_maximizer leftFinite rightFinite with ⟨region, measurable, maximal⟩
-  refine ⟨{
-    region := region
-    measurable := measurable
-    positive := positiveOfMaximal leftFinite rightFinite measurable maximal
-    negative := ?_
-  }⟩
-  apply positiveOfMaximal rightFinite leftFinite (space.complement measurable)
-  intro other otherMeasurable
-  have comparison := maximal (Set.complement other) (space.complement otherMeasurable)
-  rw [Hahn.score_complement] at comparison
-  rw [Hahn.score_complement]
-  exact comparison
+  exact ⟨HahnDecomposition.ofMaximal leftFinite rightFinite region measurable maximal⟩
 
 /-- Selects a Hahn decomposition certificate for two finite measures. -/
 public noncomputable def HahnDecomposition.ofFinite {left right : Measure space}

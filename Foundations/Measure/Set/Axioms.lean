@@ -1,8 +1,17 @@
 import Foundations.Measure.Set.Family
 import Foundations.Measure.Set.Image
+import Foundations.Measure.Set.Difference
 import Trust.Command
 
 #register_trust_claims allowing [propext, Quot.sound, Classical.choice] claims [
+  Foundations.Measure.Set.symmDiff,
+  Foundations.Measure.Set.symmDiff_self,
+  Foundations.Measure.Set.symmDiff_comm,
+  Foundations.Measure.Set.symmDiff_complement,
+  Foundations.Measure.Set.symmDiff_triangle,
+  Foundations.Measure.Set.symmDiff_union,
+  Foundations.Measure.Set.symmDiff_of_subset,
+  Foundations.Measure.Set.subset_union_symmDiff,
   Foundations.Measure.Set.image,
   Foundations.Measure.Set.image_empty,
   Foundations.Measure.Set.image_univ,

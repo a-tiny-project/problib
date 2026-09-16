@@ -3,6 +3,10 @@ import Foundations.Measure.Giry.Necessity
 import Trust.Command
 
 #register_trust_claims allowing [propext, Quot.sound, Classical.choice] claims [
+  Foundations.Measure.Giry.unitInterval_standardBorel,
+  Foundations.Measure.Giry.standardBorel,
+  Foundations.Measure.Giry.Necessity.emptyLawSpace_standardBorel,
+  Foundations.Measure.Giry.Necessity.emptyLawSpace_empty,
   Foundations.Measure.Giry.Law,
   Foundations.Measure.Giry.generators,
   Foundations.Measure.Giry.space,

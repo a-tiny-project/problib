@@ -9,11 +9,36 @@ permissions:
   contents: read
 
 jobs:
+  platforms:
+    runs-on: ubuntu-latest
+    outputs:
+      os: ${{ steps.select.outputs.os }}
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+        with:
+          persist-credentials: false
+      - id: select
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          systems = json.loads(Path("release.json").read_text()).get("systems")
+          hosts = [("x86_64-linux", "ubuntu-latest"), ("x86_64-darwin", "macos-15-intel")]
+          runners = [runner for system, runner in hosts if systems is None or system in systems]
+          if not runners:
+              raise SystemExit("release has no supported CI host")
+          with open(os.environ["GITHUB_OUTPUT"], "a") as output:
+              output.write("os=" + json.dumps(runners) + "\n")
+          PY
+
   build:
+    needs: platforms
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-15-intel]
+        os: ${{ fromJSON(needs.platforms.outputs.os) }}
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803

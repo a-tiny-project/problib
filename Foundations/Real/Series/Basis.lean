@@ -1,7 +1,7 @@
 module
 
 public import Foundations.Real.Extended
-public import Foundations.Real.Series.Bijection
+public import Foundations.Countable.Bijection
 
 set_option autoImplicit false
 
@@ -10,7 +10,7 @@ namespace Foundations.Real.ENNReal
 open scoped Rat
 
 @[expose] public def rationalBasisRat (index : Nat) : Rat :=
-  let pair := NatProductBijection.decode index
+  let pair := Countable.Pair.decode index
   (pair.1 : Int) /. ((pair.2 + 1 : Nat) : Int)
 
 public theorem rationalBasisRatNonnegative (index : Nat) :
@@ -29,15 +29,15 @@ public theorem existsRationalBasis (value : Rat)
     (nonnegative : 0 ≤ value) :
     ∃ index, rationalBasis index = ofRat value nonnegative := by
   let pair : Nat × Nat := (value.num.toNat, value.den - 1)
-  refine ⟨NatProductBijection.encode pair, ?_⟩
+  refine ⟨Countable.Pair.encode pair, ?_⟩
   have numerator : ((value.num.toNat : Nat) : Int) = value.num :=
     Int.toNat_of_nonneg (Rat.num_nonneg.mpr nonnegative)
   have denominator : value.den - 1 + 1 = value.den :=
     Nat.sub_add_cancel (Nat.one_le_iff_ne_zero.mpr value.den_nz)
   have rationalEqual :
-      rationalBasisRat (NatProductBijection.encode pair) = value := by
+      rationalBasisRat (Countable.Pair.encode pair) = value := by
     unfold rationalBasisRat
-    rw [NatProductBijection.decodeEncode]
+    rw [Countable.Pair.decodeEncode]
     change
       (((value.num.toNat : Nat) : Int) /.
         ((value.den - 1 + 1 : Nat) : Int)) = value

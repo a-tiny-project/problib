@@ -2,6 +2,18 @@ import Foundations.Measure.Necessity
 import Trust.Command
 
 #register_trust_claims allowing [propext, Quot.sound, Classical.choice] claims [
+  Foundations.Measure.Necessity.Kernel.RadonNikodym.selected_probability_density,
+  Foundations.Measure.Necessity.Kernel.RadonNikodym.standardBorel_does_not_remove_zeroInfinity_premise,
+  Foundations.Measure.Necessity.Kernel.RadonNikodym.standardBorel_empty_source_derivative,
+  Foundations.Measure.Necessity.Kernel.RadonNikodym.standardBorel_empty_target_derivative,
+  Foundations.Measure.Necessity.Kernel.RadonNikodym.densityRatio_requires_factorable_infinite_mass,
+  Foundations.Measure.Necessity.Kernel.RadonNikodym.reference,
+  Foundations.Measure.Necessity.Kernel.RadonNikodym.separateDerivative,
+  Foundations.Measure.Necessity.Kernel.RadonNikodym.density_not_jointlyMeasurable,
+  Foundations.Measure.Necessity.Kernel.RadonNikodym.probability_fibers_do_not_validate_separate_choice,
+  Foundations.Measure.Necessity.Kernel.RadonNikodym.ordinary_absoluteContinuity_insufficient,
+  Foundations.Measure.Necessity.Kernel.RadonNikodym.empty_source_derivative,
+  Foundations.Measure.Necessity.Kernel.RadonNikodym.infinite_reference_does_not_ensure_ae_uniqueness,
   Foundations.Measure.Necessity.zero_not_randomizable,
   Foundations.Measure.Necessity.Disintegration.Uniqueness.source_standardBorel,
   Foundations.Measure.Necessity.Disintegration.Uniqueness.product_sFinite,

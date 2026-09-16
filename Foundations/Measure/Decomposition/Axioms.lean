@@ -2,6 +2,19 @@ import Foundations.Measure.Decomposition
 import Trust.Command
 
 #register_trust_claims allowing [propext, Quot.sound, Classical.choice] claims [
+  Foundations.Measure.Measure.Hahn.limitSet,
+  Foundations.Measure.Measure.Hahn.limitSet_measurable,
+  Foundations.Measure.Measure.Hahn.score_le_limitSet,
+  Foundations.Measure.Measure.Hahn.score_le_add_setDistance,
+  Foundations.Measure.Measure.Hahn.supremum_eq_iSup,
+  Foundations.Measure.Measure.Hahn.exists_index_defect_le,
+  Foundations.Measure.Measure.Hahn.positive_of_maximal,
+  Foundations.Measure.Measure.HahnDecomposition.ofMaximal,
+  Foundations.Measure.Measure.HahnDecomposition.ae_density_le_on_region,
+  Foundations.Measure.Measure.HahnDecomposition.ae_density_bounds,
+  Foundations.Measure.Measure.Hahn.levelDensity,
+  Foundations.Measure.Measure.Hahn.levelDensity_measurable,
+  Foundations.Measure.Measure.Hahn.ae_levelDensity_eq,
   Foundations.Measure.Measure.isZeroInfinitySet_restrict_univ_iff,
   Foundations.Measure.Measure.IsZeroInfinitySet.smul_top,
   Foundations.Measure.Measure.IsZeroInfinitySet.eq_smul_top,

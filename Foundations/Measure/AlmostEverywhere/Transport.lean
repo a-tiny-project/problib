@@ -45,10 +45,28 @@ public theorem ae_map_iff (function : alpha → beta)
     (target.complement predicateMeasurable)]
   rfl
 
+/-- If a property holds almost everywhere, it holds under measure restriction. -/
 public theorem AE.restrict {predicate : alpha → Prop}
     (holds : measure.AE predicate) (region : Set alpha) :
     (measure.restrict region).AE predicate :=
   NullSet.restrict holds region
+
+/-- Transports an almost-everywhere property under restriction to a conditional
+property almost everywhere under the ambient measure. -/
+public theorem AE.of_restrict {region : Set alpha} {predicate : alpha → Prop}
+    (holds : (measure.restrict region).AE predicate) :
+    measure.AE (fun value => region value → predicate value) := by
+  classical
+  rcases NullSet.exists_measurable_superset holds with
+    ⟨superset, measurable, included, null⟩
+  have nullIntersection : measure.NullSet (Set.inter superset region) := by
+    rw [NullSet, ← measure.restrict_apply region measurable]
+    exact null
+  apply nullIntersection.mono
+  intro value failure
+  by_cases member : region value
+  · exact ⟨included (fun present => failure (fun _ => present)), member⟩
+  · exact False.elim (failure (fun present => False.elim (member present)))
 
 /-- A measurable region holds almost everywhere under restriction of the measure
 to that region. -/

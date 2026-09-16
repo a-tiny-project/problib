@@ -98,23 +98,23 @@ private def flattenCover {α : Type u} (sets : Nat → Set α)
     (covers : ∀ index, CountableCover (sets index)) :
     CountableCover (Set.iUnion sets) where
   sets := fun flatIndex =>
-    let pair := NatProductBijection.decode flatIndex
+    let pair := Countable.Pair.decode flatIndex
     (covers pair.1).sets pair.2
   covers := by
     intro value member
     rcases member with ⟨row, rowMember⟩
     rcases (covers row).covers rowMember with ⟨column, columnMember⟩
-    refine ⟨NatProductBijection.encode (row, column), ?_⟩
+    refine ⟨Countable.Pair.encode (row, column), ?_⟩
     have decoded :
-        NatProductBijection.decode
-            (NatProductBijection.encode (row, column)) =
+        Countable.Pair.decode
+            (Countable.Pair.encode (row, column)) =
           (row, column) :=
-      NatProductBijection.decodeEncode (row, column)
+      Countable.Pair.decodeEncode (row, column)
     change
-      (covers (NatProductBijection.decode
-          (NatProductBijection.encode (row, column))).1).sets
-        (NatProductBijection.decode
-          (NatProductBijection.encode (row, column))).2 value
+      (covers (Countable.Pair.decode
+          (Countable.Pair.encode (row, column))).1).sets
+        (Countable.Pair.decode
+          (Countable.Pair.encode (row, column))).2 value
     rw [decoded]
     exact columnMember
 

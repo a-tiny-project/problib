@@ -1,7 +1,9 @@
 import Foundations.Measure.Additive.Comap.Finite
+import Foundations.Measure.Additive.Comap.Sum
 import Trust.Command
 
 #register_trust_claims allowing [propext, Quot.sound, Classical.choice] claims [
+  Foundations.Measure.Measure.coproduct_decomposition,
   Foundations.Measure.Measure.comap,
   Foundations.Measure.Measure.comap_apply,
   Foundations.Measure.Measure.comap_apply_univ,

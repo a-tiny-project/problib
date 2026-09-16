@@ -1,7 +1,9 @@
+import Foundations.Measure.Pi.Axioms
 import Foundations.Measure.Giry.Axioms
 import Foundations.Measure.Normalization.Axioms
 import Foundations.Measure
 import Foundations.Measure.Additive.Axioms
+import Foundations.Measure.Approximation.Axioms
 import Foundations.Measure.AlmostEverywhere.Axioms
 import Foundations.Measure.Caratheodory.Axioms
 import Foundations.Measure.Coding.Axioms

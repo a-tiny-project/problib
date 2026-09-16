@@ -1,10 +1,22 @@
 import Foundations.QuasiBorel.Measurable
 import Foundations.QuasiBorel.Measurable.StandardBorel
 import Foundations.QuasiBorel.Measurable.Pair
+import Foundations.QuasiBorel.Measurable.Family
 import Foundations.QuasiBorel.Measurable.Necessity
 import Trust.Command
 
 #register_trust_claims allowing [propext, Quot.sound, Classical.choice] claims [
+  Foundations.QuasiBorel.SumRandom.measurable,
+  Foundations.QuasiBorel.Space.toMeasurable_initial,
+  Foundations.QuasiBorel.Space.toMeasurable_sum,
+  Foundations.QuasiBorel.Space.inlEmbedding,
+  Foundations.QuasiBorel.Space.inrEmbedding,
+  Foundations.QuasiBorel.Space.inlEmbedding_apply,
+  Foundations.QuasiBorel.Space.inrEmbedding_apply,
+  Foundations.QuasiBorel.Space.piToMeasurable,
+  Foundations.QuasiBorel.Space.piOfMeasurable,
+  Foundations.QuasiBorel.Space.piToMeasurable_piOfMeasurable,
+  Foundations.QuasiBorel.Space.piOfMeasurable_piToMeasurable,
   Foundations.QuasiBorel.Source.ofMeasurable,
   Foundations.QuasiBorel.Space.ofMeasurable,
   Foundations.QuasiBorel.Hom.ofMeasurable,
@@ -12,9 +24,17 @@ import Trust.Command
   Foundations.QuasiBorel.Hom.ofMeasurable_comp,
   Foundations.QuasiBorel.Hom.ofMeasurable_faithful,
   Foundations.QuasiBorel.Space.toMeasurable,
+  Foundations.QuasiBorel.Space.random_measurable,
+  Foundations.QuasiBorel.RandomFamily.select_measurable,
+  Foundations.QuasiBorel.RandomFamily.join_select,
+  Foundations.QuasiBorel.RandomFamily.join_random,
+  Foundations.QuasiBorel.Space.pairRandom_encode,
+  Foundations.QuasiBorel.Space.pairRandom_accepted,
+  Foundations.QuasiBorel.Space.random_pair_measurable,
   Foundations.QuasiBorel.Hom.toMeasurable,
   Foundations.QuasiBorel.Space.measurableMap_iff_random,
   Foundations.QuasiBorel.Space.toMeasurable_ofEmbedding,
+  Foundations.QuasiBorel.Hom.toMeasurable_ofEmbedding,
   Foundations.QuasiBorel.Hom.measurable_ofEmbedding,
   Foundations.QuasiBorel.Hom.ofMeasurable_full_ofEmbedding,
   Foundations.QuasiBorel.Space.toMeasurable_ofStandardBorel,

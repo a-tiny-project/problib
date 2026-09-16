@@ -30,6 +30,13 @@ sets have measurable preimages under all accepted random elements. -/
     intro regions measurable random accepted
     exact source.iUnion (fun index => measurable index accepted)
 
+theorem Space.random_measurable {source : Foundations.Measure.Space Ω}
+    {space : Space (Source.ofMeasurable source)} {random : Ω → space.Carrier}
+    (accepted : space.Random random) :
+    MeasurableMap source space.toMeasurable random := by
+  intro region measurable
+  exact measurable accepted
+
 /-- Quasi-Borel morphisms induce measurable maps between the induced
 measurable spaces. -/
 theorem Hom.toMeasurable {source : Foundations.Measure.Space Ω}

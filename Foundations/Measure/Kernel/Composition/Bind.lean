@@ -36,6 +36,16 @@ variable {alpha : Type u} {beta : Type v}
   intro set measurable
   rw [bind_apply _ _ measurable, lintegral_zero_measure, Measure.zero_apply]
 
+/-- Binding any measure against the zero kernel produces the zero measure. -/
+@[simp] public theorem bind_zero (measure : Measure source) :
+    measure.bind (Kernel.zero source target) = Measure.zero target := by
+  apply Measure.ext
+  intro region measurable
+  rw [bind_apply _ _ measurable, Measure.zero_apply]
+  have equal : (fun input => Kernel.zero source target input region) =
+      (fun _ => ENNReal.zero) := funext (fun _ => Measure.zero_apply region)
+  rw [equal, lintegral_zero]
+
 /-- Bind distributes over measure addition in its first argument. -/
 public theorem add_bind (left right : Measure source) (kernel : Kernel source target) :
     (Measure.add left right).bind kernel = Measure.add (left.bind kernel) (right.bind kernel) := by
@@ -194,8 +204,8 @@ public noncomputable def bind {measure : Measure source}
   finite := by
     intro index
     exact IsFinite.bind
-      (measureFinite.finite (NatProductBijection.decode index).1)
-      (kernelFinite.finite (NatProductBijection.decode index).2)
+      (measureFinite.finite (Countable.Pair.decode index).1)
+      (kernelFinite.finite (Countable.Pair.decode index).2)
   sum_eq := by
     rw [Measure.sum_double]
     calc

@@ -106,7 +106,7 @@ public theorem sum_add (left right : Nat → Measure source) :
       ENNReal.tsumAdd
         (fun index => left index set) (fun index => right index set)
 
-public theorem sum_reindex (equivalence : Bijection Nat Nat)
+public theorem sum_reindex (equivalence : Countable.Bijection Nat Nat)
     (measures : Nat → Measure source) :
     sum (fun index => measures (equivalence.forward index)) =
       sum measures := by
@@ -142,7 +142,7 @@ public theorem sum_comm (measures : Nat → Nat → Measure source) :
 @[expose] public def flatten
     (measures : Nat → Nat → Measure source) : Nat → Measure source :=
   fun index =>
-    let pair := NatProductBijection.decode index
+    let pair := Countable.Pair.decode index
     measures pair.1 pair.2
 
 public theorem sum_double (measures : Nat → Nat → Measure source) :

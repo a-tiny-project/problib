@@ -46,6 +46,12 @@ instance {Ω : Type u} {source : Source Ω} {domain codomain : Space source} :
   toFun := fun value => value
   mapRandom := fun random => random
 
+/-- Constant quasi-Borel morphism mapping every point of the domain to a fixed target point. -/
+@[expose] def constant {Ω : Type u} {source : Source Ω}
+    (domain codomain : Space source) (point : codomain.Carrier) : Hom domain codomain where
+  toFun := fun _ => point
+  mapRandom := fun _ => codomain.constant point
+
 @[expose] def comp {Ω : Type u} {source : Source Ω} {first second third : Space source}
     (after : Hom second third) (before : Hom first second) : Hom first third where
   toFun := fun value => after (before value)
@@ -149,6 +155,30 @@ theorem terminate_unique {Ω : Type u} {source : Source Ω} {space : Space sourc
     Hom.comp (first left right) (pair leftMap rightMap) = leftMap := by
   ext value
   rfl
+
+/-- Morphism pairing a fixed left coordinate with the incoming right coordinate. -/
+@[expose] def pairLeft {Ω : Type u} {source : Source Ω}
+    (left right : Space source) (point : left.Carrier) : Hom right (product left right) :=
+  pair (Hom.constant right left point) (Hom.identity right)
+
+/-- Cartesian product of two quasi-Borel morphisms acting componentwise. -/
+@[expose] def productMap {Ω : Type u} {source : Source Ω}
+    {first second third fourth : Space source}
+    (left : Hom first third) (right : Hom second fourth) :
+    Hom (product first second) (product third fourth) :=
+  pair (Hom.comp left (Space.first first second)) (Hom.comp right (Space.second first second))
+
+/-- Canonical symmetry morphism exchanging coordinates of a binary product. -/
+@[expose] def swap {Ω : Type u} {source : Source Ω} (left right : Space source) :
+    Hom (product left right) (product right left) :=
+  pair (second left right) (first left right)
+
+/-- Canonical associator morphism for nested binary products in quasi-Borel spaces. -/
+@[expose] def associate {Ω : Type u} {source : Source Ω} (first second third : Space source) :
+    Hom (product (product first second) third) (product first (product second third)) :=
+  pair (Hom.comp (Space.first first second) (Space.first (product first second) third))
+    (pair (Hom.comp (Space.second first second) (Space.first (product first second) third))
+      (Space.second (product first second) third))
 
 @[simp] theorem second_pair {Ω : Type u} {source : Source Ω}
     {domain left right : Space source} (leftMap : Hom domain left) (rightMap : Hom domain right) :

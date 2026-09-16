@@ -1,6 +1,7 @@
 import Foundations.Measure.Giry
 import Foundations.Measure.Normalization
 import Foundations.Measure.Additive
+import Foundations.Measure.Approximation
 import Foundations.Measure.AlmostEverywhere
 import Foundations.Measure.Caratheodory
 import Foundations.Measure.Coding
@@ -18,6 +19,8 @@ import Foundations.Measure.Necessity
 import Foundations.Measure.Null
 import Foundations.Measure.Outer
 import Foundations.Measure.Product
+import Foundations.Measure.Product.Countable
+import Foundations.Measure.Pi
 import Foundations.Measure.Real
 import Foundations.Measure.Set
 import Foundations.Measure.Space

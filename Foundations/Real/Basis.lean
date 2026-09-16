@@ -1,7 +1,7 @@
 module
 
 public import Foundations.Real.Construction.Dedekind.Selection
-public import Foundations.Real.Series.Bijection
+public import Foundations.Countable.Bijection
 
 set_option autoImplicit false
 
@@ -10,32 +10,32 @@ namespace Foundations.Real.Construction.Dedekind
 open scoped Rat
 
 private def integerCode (index : Nat) : Int :=
-  let pair := NatProductBijection.decode index
+  let pair := Countable.Pair.decode index
   (pair.1 : Int) - (pair.2 : Int)
 
 private theorem integerCode_surjective (value : Int) :
     ∃ index, integerCode index = value := by
   cases value with
   | ofNat value =>
-      refine ⟨NatProductBijection.encode (value, 0), ?_⟩
-      simp only [integerCode, NatProductBijection.decodeEncode]
+      refine ⟨Countable.Pair.encode (value, 0), ?_⟩
+      simp only [integerCode, Countable.Pair.decodeEncode]
       rfl
   | negSucc value =>
-      refine ⟨NatProductBijection.encode (0, value + 1), ?_⟩
-      simp only [integerCode, NatProductBijection.decodeEncode]
+      refine ⟨Countable.Pair.encode (0, value + 1), ?_⟩
+      simp only [integerCode, Countable.Pair.decodeEncode]
       rfl
 
 private def rationalCode (index : Nat) : Rat :=
-  let pair := NatProductBijection.decode index
+  let pair := Countable.Pair.decode index
   integerCode pair.1 /. ((pair.2 + 1 : Nat) : Int)
 
 private theorem rationalCode_surjective (value : Rat) :
     ∃ index, rationalCode index = value := by
   rcases integerCode_surjective value.num with ⟨numerator, numeratorEqual⟩
-  refine ⟨NatProductBijection.encode (numerator, value.den - 1), ?_⟩
+  refine ⟨Countable.Pair.encode (numerator, value.den - 1), ?_⟩
   have denominator : value.den - 1 + 1 = value.den :=
     Nat.sub_add_cancel (Nat.one_le_iff_ne_zero.mpr value.den_nz)
-  simp only [rationalCode, NatProductBijection.decodeEncode, numeratorEqual, denominator,
+  simp only [rationalCode, Countable.Pair.decodeEncode, numeratorEqual, denominator,
     Rat.num_divInt_den]
 
 /-- Countable rational basis elements inside the selected Dedekind real carrier. -/

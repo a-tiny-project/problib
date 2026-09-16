@@ -1,6 +1,7 @@
 module
 
 public import Foundations.Measure.Integral.Density.Basic
+import Foundations.Measure.Integral.Density.Restrict
 import Foundations.Measure.Integral.Lebesgue.Algebra
 import Foundations.Measure.Integral.Simple.Induction
 import Foundations.Measure.Extended.Algebra.Binary
@@ -143,5 +144,20 @@ public theorem lintegral_withDensity
         intro input
         exact (ENNReal.mulISup (density input)
           (fun index => functions index input)).symm
+
+/-- Successive density reweighting multiplies densities pointwise, with no
+finiteness assumptions on the underlying measure or densities. -/
+public theorem Measure.withDensity_withDensity (measure : Measure space)
+    {first second : alpha → ENNReal}
+    (firstMeasurable : ENNRealMeasurable space first)
+    (secondMeasurable : ENNRealMeasurable space second) :
+    (measure.withDensity first).withDensity second =
+      measure.withDensity (fun value => ENNReal.mul (first value) (second value)) := by
+  apply Measure.ext
+  intro region regionMeasurable
+  rw [Measure.withDensity_apply _ _ regionMeasurable,
+    ← measure.withDensity_restrict first regionMeasurable,
+    lintegral_withDensity _ firstMeasurable secondMeasurable,
+    Measure.withDensity_apply _ _ regionMeasurable]
 
 end Foundations.Measure

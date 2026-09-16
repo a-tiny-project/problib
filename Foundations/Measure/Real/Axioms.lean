@@ -2,6 +2,8 @@ import Foundations.Measure.Real
 import Trust.Command
 
 #register_trust_claims allowing [propext, Quot.sound, Classical.choice] claims [
+  Foundations.Measure.Real.countableGenerator,
+  Foundations.Measure.Real.unitCountableGenerator,
   Foundations.Measure.Real.measurable_lt,
   Foundations.Measure.Real.measurable_le,
   Foundations.Measure.Real.measurable_eq,

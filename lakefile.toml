@@ -1,0 +1,15 @@
+name = "foundations"
+defaultTargets = ["Foundations"]
+testDriver = "TrustTest"
+
+[leanOptions]
+autoImplicit = false
+
+[[lean_lib]]
+name = "Foundations"
+
+[[lean_lib]]
+name = "Trust"
+
+[[lean_lib]]
+name = "TrustTest"

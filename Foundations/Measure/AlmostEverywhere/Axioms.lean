@@ -2,6 +2,7 @@ import Foundations.Measure.AlmostEverywhere
 import Trust.Command
 
 #register_trust_claims allowing [propext, Quot.sound, Classical.choice] claims [
+  Foundations.Measure.Measure.AE.of_restrict,
   Foundations.Measure.Measure.NullSet.add,
   Foundations.Measure.Measure.AE.add,
   Foundations.Measure.Measure.restrict_congr_ae,

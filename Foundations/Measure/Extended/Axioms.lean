@@ -2,6 +2,7 @@ import Foundations.Measure.Extended
 import Trust.Command
 
 #register_trust_claims allowing [propext, Quot.sound, Classical.choice] claims [
+  Foundations.Measure.ENNRealMeasurable.densityRatio,
   Foundations.Measure.Real.unitRationalBasis,
   Foundations.Measure.Real.existsUnitRationalBasisBetween,
   Foundations.Measure.Real.toRealMeasurable,

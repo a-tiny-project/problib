@@ -2,6 +2,9 @@ import Foundations.Real.Series
 import Trust.Command
 
 #register_trust_claims allowing [propext, Quot.sound, Classical.choice] claims [
+  Foundations.Real.ENNReal.densityRatio,
+  Foundations.Real.ENNReal.densityRatio_mul_of_finite,
+  Foundations.Real.ENNReal.mul_densityRatio,
   Foundations.Real.ENNReal.existsSequenceSupremum,
   Foundations.Real.ENNReal.prefixMax,
   Foundations.Real.ENNReal.prefixMaxStep,
@@ -29,8 +32,6 @@ import Trust.Command
   Foundations.Real.ENNReal.tsumConstOfNeZero,
   Foundations.Real.ENNReal.tsumComm,
   Foundations.Real.ENNReal.tsumISup,
-  Foundations.Real.NatProductBijection.encodeDecode,
-  Foundations.Real.NatProductBijection.decodeEncode,
   Foundations.Real.ENNReal.tsumReindex,
   Foundations.Real.ENNReal.tsumFlatten,
   Foundations.Real.ENNReal.existsPositiveSummableError,

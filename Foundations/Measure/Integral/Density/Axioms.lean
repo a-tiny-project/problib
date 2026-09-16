@@ -2,6 +2,7 @@ import Foundations.Measure.Integral.Density
 import Trust.Command
 
 #register_trust_claims allowing [propext, Quot.sound, Classical.choice] claims [
+  Foundations.Measure.Measure.withDensity_withDensity,
   Foundations.Measure.Measure.IsDensity.le_of_unit,
   Foundations.Measure.Measure.IsDensity.unit_ae_le_iff,
   Foundations.Measure.Measure.ae_zero_iff_of_withDensity_eq,

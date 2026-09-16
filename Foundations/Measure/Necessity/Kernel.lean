@@ -2,6 +2,7 @@ module
 
 public import Foundations.Measure.Necessity.Kernel.Finite
 public import Foundations.Measure.Necessity.Kernel.Composition
+public import Foundations.Measure.Necessity.Kernel.RadonNikodym
 public import Foundations.Measure.Kernel.Distribution
 public import Foundations.Measure.Distribution.Example
 

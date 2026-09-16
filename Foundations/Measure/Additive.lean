@@ -4,6 +4,7 @@ public import Foundations.Measure.Additive.AbsoluteContinuity
 public import Foundations.Measure.Additive.Algebra
 public import Foundations.Measure.Additive.Continuity
 public import Foundations.Measure.Additive.Comap.Finite
+public import Foundations.Measure.Additive.Comap.Sum
 public import Foundations.Measure.Additive.Counting
 public import Foundations.Measure.Additive.Core
 public import Foundations.Measure.Additive.Dirac
