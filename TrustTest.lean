@@ -1,0 +1,15 @@
+import TrustTest.Allowed.Axioms
+import TrustTest.Duplicate
+import TrustTest.Empty
+import TrustTest.NativeDecide.Axioms
+import TrustTest.Ordering
+import TrustTest.PolicyCeiling
+import TrustTest.ProjectAxiom.Axioms
+import TrustTest.Reachability.Axioms
+import TrustTest.Registry.Composition
+import TrustTest.Registry.CrossDuplicate
+import TrustTest.Registry.DuplicateRegistration
+import TrustTest.Registry.Export
+import TrustTest.RootNarrowing
+import TrustTest.Sorry.Axioms
+import TrustTest.Unsafe.Axioms
