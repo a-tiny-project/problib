@@ -7,9 +7,11 @@ let
   lib = pkgs.lib;
   isLean = release.language == "lean";
   isLibrary = release.library or false;
-  hasPlugin = release ? plugin;
   hasNativeZig = isLean && (release ? zig);
   hasZig = !isLean || hasNativeZig;
+  # A Zig release that names a consumer module builds with the consumer
+  # compiler. Every other Zig release keeps the patched monorepo compiler.
+  isConsumer = !isLean && (release ? consumer_module);
   workspaces = release.workspaces or [ ];
   toolchain =
     if isLean then
@@ -24,6 +26,7 @@ let
       import ./zig.nix {
         inherit pkgs;
         version = release.zig;
+        consumer = isConsumer;
       };
   nativeZig = import ./zig.nix {
     inherit pkgs;
@@ -34,9 +37,8 @@ let
     toolchain
   ]
   ++ lib.optional (libraries != [ ]) pkgs.pkgconf
-  ++ lib.optional (hasPlugin || (hasNativeZig && release.executables != [ ])) pkgs.makeWrapper
+  ++ lib.optional (hasNativeZig && release.executables != [ ]) pkgs.makeWrapper
   ++ lib.optional (hasZig && pkgs.stdenv.hostPlatform.isDarwin) pkgs.nodejs
-  ++ lib.optional hasPlugin pkgs.jq
   ++ lib.optional hasNativeZig pkgs.python3
   ++ lib.optional hasNativeZig nativeZig;
   libraries = map (name: import (./. + "/${name}.nix") { inherit pkgs; }) (release.libraries or [ ]);
@@ -49,8 +51,15 @@ let
       // lib.optionalAttrs hasNativeZig nativeZig.buildRunnerEnvironment
     else
       toolchain.buildRunnerEnvironment;
+  # An explicit target turns off native framework discovery in the consumer
+  # compiler, so a consumer release on Darwin builds for the host target.
+  zigTarget =
+    if isConsumer && pkgs.stdenv.hostPlatform.isDarwin then
+      "-Dcpu=baseline"
+    else
+      "-Dtarget=${toolchain.hostTarget or ""}";
   zigFlags =
-    "-j$NIX_BUILD_CORES -fno-incremental -Dtarget=${toolchain.hostTarget or ""}"
+    "-j$NIX_BUILD_CORES -fno-incremental ${zigTarget}"
     + lib.optionalString pkgs.stdenv.hostPlatform.isLinux " -Ddynamic-linker=${pkgs.stdenv.cc.bintools.dynamicLinker}";
   buildFile = lib.escapeShellArg "${release.root}/build.zig";
   typst = import ./typst.nix { inherit pkgs; };
@@ -93,10 +102,6 @@ let
           ''
             zig build ${zigFlags} --build-file ${buildFile} --release=small --prefix "$out"
           ''
-          + lib.optionalString hasPlugin ''
-            zig build ${zigFlags} --build-file ${lib.escapeShellArg "${release.plugin}/build.zig"} \
-              ${lib.escapeShellArgs (import ./stardust.nix)} --prefix "$out"
-          ''
       )
       + ''
         runHook postBuild
@@ -127,19 +132,6 @@ let
             zig build ${zigFlags} --build-file ${buildFile} ${lib.escapeShellArg step}
           '') release.checks
       )
-      + lib.optionalString hasPlugin ''
-        export TINY_STARDUST_ZIG="${toolchain}/bin/zig"
-        export TINY_STARDUST_PLUGIN="$out/lib/libtiny_stardust${pkgs.stdenv.hostPlatform.extensions.sharedLibrary}"
-        set +e
-        "$out/bin/stardust" zig ${lib.escapeShellArg "${release.plugin}/fixture/live.zig"} \
-          --repository-root "$PWD/deps" --json > "$TMPDIR/live.json"
-        stardust_status=$?
-        set -e
-        test "$stardust_status" -eq 2
-        jq -e '.schema == "tiny.stardust.snapshot-document/v8" and
-          .terminal == "complete" and .producer_counts.functions > 0 and
-          .reconciliation == "matched"' "$TMPDIR/live.json"
-      ''
       + ''
         runHook postCheck
       '';
@@ -153,11 +145,6 @@ let
           install -Dm755 .lake/build/bin/${lib.escapeShellArg target} "$out/bin/"${lib.escapeShellArg target}
         '') release.executables
       )
-      + lib.optionalString hasPlugin ''
-        wrapProgram "$out/bin/stardust" \
-          --set TINY_STARDUST_ZIG "${toolchain}/bin/zig" \
-          --set TINY_STARDUST_PLUGIN "$out/lib/libtiny_stardust${pkgs.stdenv.hostPlatform.extensions.sharedLibrary}"
-      ''
       + lib.optionalString hasNativeZig (
         lib.concatMapStringsSep "\n" (target: ''
           wrapProgram "$out/bin/"${lib.escapeShellArg target} \

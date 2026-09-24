@@ -1,12 +1,12 @@
-name = "foundations"
-defaultTargets = ["Foundations"]
+name = "problib"
+defaultTargets = ["Problib"]
 testDriver = "TrustTest"
 
 [leanOptions]
 autoImplicit = false
 
 [[lean_lib]]
-name = "Foundations"
+name = "Problib"
 
 [[lean_lib]]
 name = "Trust"

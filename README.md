@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="logo.svg" alt="Foundations" width="360" />
+  <img src="logo.svg" alt="Problib" width="360" />
 </p>
 
-# Foundations v26.9.1
+# Problib v26.9.2
 
 Probabilistic programming languages express models with uncertain variables,
 observations, and inference. In discrete languages, program semantics denote
@@ -25,7 +25,7 @@ deterministic decoders. However, this classical result serves as an existence
 theorem rather than an algorithm. In fact, a zero kernel on an inhabited
 parameter domain admits no randomizer.
 
-Foundations provides a dedicated, self-contained mathematical library in Lean 4
+problib provides a dedicated, self-contained mathematical library in Lean 4
 built from first principles. The project formalizes reusable compositional
 probability mathematics across independent language and verification efforts. It
 proves every theorem under Lean's standard three kernel axioms (`propext`,
@@ -37,43 +37,40 @@ remains the standard Lean boundary either way. However, this design choice
 incurs substantial maintenance work, requiring the project to build real
 analysis, measure theory, and integration from first principles.
 
-Downstream languages like RePPL rely on Foundations to ground their denotational
-semantics. However, Foundations does not contain RePPL's finite-calculus proof
-package or prove the released RePPL executable compiler correct. Furthermore,
-classical existence theorems for decoders and conditional kernels do not supply
-general algorithms for continuous compilation. Developing continuous
-higher-order probability monads and executable compiler refinement remain active
-research frontiers.
+Downstream languages like RePPL rely on problib to ground their denotational
+semantics. However, problib does not contain RePPL's finite-calculus proof
+package or prove the RePPL certificate checker correct. Furthermore, classical
+existence theorems for decoders and conditional kernels do not supply general
+algorithms for continuous compilation. Developing continuous higher-order
+probability monads and executable compilers remain active research frontiers.
 
 ## Mechanized mathematical layers
 
-Foundations organizes over 5,000 checked production declarations from the
+problib organizes over 5,000 checked production declarations from the
 established baseline into connected layers:
 
-- **Real analysis from Dedekind cuts:**
-  [Foundations/Real.lean](Foundations/Real.lean) constructs real numbers as
-  Dedekind cuts, proving completeness as an ordered field. Nonnegative extended
-  reals (`ENNReal`) provide infinity-aware summation commuting with monotone
-  suprema.
+- **Real analysis from Dedekind cuts:** [Problib/Real.lean](Problib/Real.lean)
+  constructs real numbers as Dedekind cuts, proving completeness as an ordered
+  field. Nonnegative extended reals (`ENNReal`) provide infinity-aware summation
+  commuting with monotone suprema.
 - **Continuous measure and Lebesgue integration:**
-  [Foundations/Measure.lean](Foundations/Measure.lean) develops Carathéodory
-  outer measures from countable covers. Half-open intervals generate standard
-  Borel spaces. Nonnegative Lebesgue integration formalizes monotone
-  convergence, Fatou's lemma, and density transforms.
+  [Problib/Measure.lean](Problib/Measure.lean) develops Carathéodory outer
+  measures from countable covers. Half-open intervals generate standard Borel
+  spaces. Nonnegative Lebesgue integration formalizes monotone convergence,
+  Fatou's lemma, and density transforms.
 - **S-finite kernels and Bayesian disintegration:** Measurable s-finite kernels
   compose and support Tonelli integral exchange. Disintegration theorems
   construct conditional probability kernels for compatible s-finite joint
   measures on standard Borel spaces. Conditional uniqueness holds almost
   everywhere under sigma-finite second marginals.
-- **Randomization foundations:** Foundations formalizes Olav Kallenberg's
+- **Randomization foundations:** problib formalizes Olav Kallenberg's
   Randomization Lemma
   ([Kallenberg 2021](https://doi.org/10.1007/978-3-030-61871-1)). Every standard
   Borel probability kernel decomposes into a uniform source and a measurable
   decoder.
 - **Higher-order Quasi-Borel spaces:**
-  [Foundations/QuasiBorel.lean](Foundations/QuasiBorel.lean) formalizes
-  Quasi-Borel spaces
-  ([Heunen et al. 2017](https://doi.org/10.1109/LICS.2017.8005137)),
+  [Problib/QuasiBorel.lean](Problib/QuasiBorel.lean) formalizes Quasi-Borel
+  spaces ([Heunen et al. 2017](https://doi.org/10.1109/LICS.2017.8005137)),
   establishing Cartesian closure and standard Borel embeddings for higher-order
   probabilistic semantics.
 
@@ -86,7 +83,7 @@ computational realization:
   measure disintegration establish that measurable decoders and conditional
   kernels exist under explicit hypotheses. They do not supply general algorithms
   to compute decoders for arbitrary continuous distributions.
-- **Downstream integration:** Downstream languages like RePPL use Foundations to
+- **Downstream integration:** Downstream languages like RePPL use problib to
   justify semantic correctness. Compiling continuous kernels into executable
   code remains an active research direction.
 - **Mechanized status:** Real analysis, measure theory, s-finite kernels, and
@@ -102,8 +99,8 @@ nix build
 ```
 
 `nix build` runs package checks and installs checked library sources to
-`result/share/foundations/`. Foundations is a library package. It does not
-install a standalone command-line executable in `bin/`.
+`result/share/problib/`. problib is a library package. It does not install a
+standalone command-line executable in `bin/`.
 
 Enter the development shell and compile with Lake:
 
@@ -114,36 +111,54 @@ nix develop --command lake build
 Run axiom audits and trust validation targets:
 
 ```sh
-nix develop --command lake build Foundations.Axioms Trust.Axioms TrustTest
+nix develop --command lake build Problib.Axioms Trust.Axioms TrustTest
 ```
 
-To consume Foundations as a Lake dependency in a downstream package:
+To consume problib as a Lake dependency in a downstream package:
 
 ```lean
-require foundations from git
-  "https://github.com/a-tiny-project/foundations.git" @ "v26.9.1"
+require problib from git
+  "https://github.com/a-tiny-project/problib.git" @ "v26.9.2"
+```
+
+Or, in `lakefile.toml`:
+
+```toml
+[[require]]
+name = "problib"
+git = "https://github.com/a-tiny-project/problib.git"
+rev = "v26.9.2"
+```
+
+Then fetch it and import the library:
+
+```sh
+lake update problib
+```
+
+```lean
+import Problib
 ```
 
 Ensure your project uses the pinned Lean toolchain: `leanprover/lean4:v4.31.0`.
 
 ## Module map
 
-- [Foundations/Real.lean](Foundations/Real.lean): Dedekind real numbers, order
+- [Problib/Real.lean](Problib/Real.lean): Dedekind real numbers, order
   completeness, and nonnegative extended arithmetic.
-- [Foundations/Measure.lean](Foundations/Measure.lean): Carathéodory outer
-  measures, Borel algebras, and Lebesgue integration.
-- [Foundations/Probability.lean](Foundations/Probability.lean): Probability
-  spaces, finite distributions, and measure interpretations.
-- [Foundations/QuasiBorel.lean](Foundations/QuasiBorel.lean): Quasi-Borel
-  spaces, Cartesian closure, and Borel embeddings.
-- [Foundations/Linear.lean](Foundations/Linear.lean): Vector spaces and rational
-  linear algebra.
-- [Foundations/Algebra.lean](Foundations/Algebra.lean): Core algebraic
-  structures and ordering properties.
-- [Foundations/Power.lean](Foundations/Power.lean): Integer and rational
-  exponentiation.
-- [Foundations/Axioms.lean](Foundations/Axioms.lean): Audit manifest verifying
-  standard axiom bounds across production declarations.
+- [Problib/Measure.lean](Problib/Measure.lean): Carathéodory outer measures,
+  Borel algebras, and Lebesgue integration.
+- [Problib/Probability.lean](Problib/Probability.lean): Probability spaces,
+  finite distributions, and measure interpretations.
+- [Problib/QuasiBorel.lean](Problib/QuasiBorel.lean): Quasi-Borel spaces,
+  Cartesian closure, and Borel embeddings.
+- [Problib/Linear.lean](Problib/Linear.lean): Vector spaces and rational linear
+  algebra.
+- [Problib/Algebra.lean](Problib/Algebra.lean): Core algebraic structures and
+  ordering properties.
+- [Problib/Power.lean](Problib/Power.lean): Integer and rational exponentiation.
+- [Problib/Axioms.lean](Problib/Axioms.lean): Audit manifest verifying standard
+  axiom bounds across production declarations.
 - [Trust.lean](Trust.lean): Metaprogramming audit framework detecting unsafe
   declarations and unproved goals.
 - [TrustTest.lean](TrustTest.lean): Verification tests confirming rejection of
@@ -151,9 +166,12 @@ Ensure your project uses the pinned Lean toolchain: `leanprover/lean4:v4.31.0`.
 
 ## Verification scope and trust boundaries
 
-Foundations enforces strict verification discipline through the `Trust`
-framework. Production audits verify that over 5,000 declarations rely solely on
-Lean's standard three axioms: `propext`, `Quot.sound`, and `Classical.choice`.
+problib enforces strict verification discipline through the `Trust` framework.
+Production audits verify that over 5,000 declarations rely solely on Lean's
+standard three axioms: `propext`, `Quot.sound`, and `Classical.choice`. The
+package audit in [Problib/Axioms.lean](Problib/Axioms.lean) checks every
+constant that `Problib` modules define: the declarations written in source and
+the equation lemmas, matchers, and other auxiliaries Lean generates from them.
 
 Test suites in `TrustTest` verify that the audit framework detects and rejects
 custom project axioms, unsafe declarations, and unproved `sorry` holes.
@@ -164,7 +182,7 @@ explicit mathematical hypotheses from theorem statements.
 ## References
 
 - Repository:
-  [https://github.com/a-tiny-project/foundations](https://github.com/a-tiny-project/foundations)
+  [https://github.com/a-tiny-project/problib](https://github.com/a-tiny-project/problib)
 
 ## License
 
