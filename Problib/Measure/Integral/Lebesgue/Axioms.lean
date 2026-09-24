@@ -1,0 +1,63 @@
+import Problib.Measure.Integral.Lebesgue
+import Trust.Command
+
+#register_trust_claims allowing [propext, Quot.sound, Classical.choice] claims [
+  Problib.Measure.Measure.eq_iff_lintegral,
+  Problib.Measure.lintegral_comap,
+  Problib.Measure.lintegral_comap_of_zero_outside,
+  Problib.Measure.lintegral_smul_measure,
+  Problib.Measure.lintegral_piecewise,
+  Problib.Measure.lintegral_sub,
+  Problib.Measure.lintegral_sub_ae,
+  Problib.Measure.lintegral_iInf,
+  Problib.Real.ENNReal.liminf_le_limsup,
+  Problib.Real.ENNReal.liminf_const,
+  Problib.Real.ENNReal.limsup_const,
+  Problib.Real.ENNReal.limsup_le_of_eventually,
+  Problib.Real.ENNReal.le_liminf_of_eventually,
+  Problib.Real.ENNReal.eventually_lt_of_limsup_lt,
+  Problib.Measure.lintegral_liminf_le,
+  Problib.Measure.limsup_le_lintegral_limsup,
+  Problib.Measure.lintegral_dominated_convergence,
+  Problib.Measure.lintegral_iInf_ae,
+  Problib.Measure.SimpleFunction.integral_le_lintegral,
+  Problib.Measure.lintegral_le,
+  Problib.Measure.SimpleFunction.lintegral_eq_integral,
+  Problib.Measure.SimpleFunction.integral_eq_lintegral,
+  Problib.Measure.lintegral_mono,
+  Problib.Measure.lintegral_congr,
+  Problib.Measure.lintegral_mono_ae,
+  Problib.Measure.lintegral_congr_ae,
+  Problib.Measure.lintegral_eq_zero_of_ae_zero,
+  Problib.Measure.lintegral_iSup,
+  Problib.Measure.lintegral_eq_iSup_canonical,
+  Problib.Measure.lintegral_const,
+  Problib.Measure.lintegral_zero,
+  Problib.Measure.lintegral_indicator,
+  Problib.Measure.apply_eq_lintegral_indicator,
+  Problib.Measure.lintegral_add,
+  Problib.Measure.lintegral_smul,
+  Problib.Measure.lintegral_tsum,
+  Problib.Measure.lintegral_mono_measure,
+  Problib.Measure.lintegral_iSupIncreasing_measure,
+  Problib.Measure.lintegral_zero_measure,
+  Problib.Measure.lintegral_add_measure,
+  Problib.Measure.lintegral_sum_measure,
+  Problib.Measure.lintegral_sum,
+  Problib.Measure.lintegral_map,
+  Problib.Measure.lintegral_dirac,
+  Problib.Measure.lintegral_dirac_of_measurable_singleton,
+  Problib.Measure.upperLevel_measurable,
+  Problib.Measure.markov,
+  Problib.Measure.null_upperLevel_of_lintegral_eq_zero,
+  Problib.Measure.ae_zero_of_lintegral_eq_zero,
+  Problib.Measure.lintegral_eq_zero_iff
+]
+
+#audit_registered_claims
+
+#audit_package [Problib.Measure.Integral.Lebesgue] allowing [
+  propext,
+  Quot.sound,
+  Classical.choice
+]
