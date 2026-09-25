@@ -12,10 +12,9 @@ It contains foundational theory of the real numbers, measures and integrals, pro
 conditioning, and the conditions under which Monte Carlo inference is correct.
 
 Every theorem in the library rests on Lean's three standard axioms (`propext`, `Quot.sound`,
-and `Classical.choice`), and the library builds this mathematics itself, without
-Mathlib (for speed of compilation, although we sync and take content 
-from Mathlib where required, with proper license
-attribution).
+and `Classical.choice`), and the library builds all requisite statements without
+Mathlib (mostly, for speed of compilation: we sync and take content 
+from Mathlib where required, with proper license attribution).
 
 ## Contents
 
