@@ -1,0 +1,18 @@
+{
+  "checks": [
+    "Problib.Axioms",
+    "Trust.Axioms",
+    "TrustTest"
+  ],
+  "executables": [],
+  "language": "lean",
+  "library": true,
+  "name": "problib",
+  "paper": false,
+  "root": ".",
+  "targets": [
+    "Problib"
+  ],
+  "tests": [],
+  "version": "v26.9.3"
+}
