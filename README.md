@@ -35,8 +35,7 @@ library.
 
 ## Contents
 
-problib holds over 5,000 checked declarations, in layers that build on one
-another:
+problib is constructed in layers that build on each other:
 
 - **Real numbers:** [Problib/Real.lean](Problib/Real.lean) constructs the reals
   as Dedekind cuts and proves them a complete ordered field. The nonnegative
