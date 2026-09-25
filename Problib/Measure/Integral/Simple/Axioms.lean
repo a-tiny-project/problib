@@ -68,6 +68,7 @@ import Trust.Command
   Problib.Measure.ENNRealMeasurable.induction,
   Problib.Measure.SimpleFunction.finiteSum_map_add,
   Problib.Measure.SimpleFunction.finiteSum_map_mul_left,
+  Problib.Measure.finiteSum_map_const,
   Problib.Measure.SimpleFunction.finiteSum_map_mono,
   Problib.Measure.SimpleFunction.finiteSum_map_eq_zero,
   Problib.Measure.SimpleFunction.finiteSum_eq_unique,

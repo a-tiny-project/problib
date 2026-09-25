@@ -1,4 +1,5 @@
 import Init.Data.Rat.Lemmas
+import Problib.Algebra
 
 namespace Problib.Probability
 
@@ -140,6 +141,25 @@ theorem inverse_mul_self (a : NNRat) (h : a ≠ 0) : inverse a h * a = 1 :=
 
 theorem mul_inverse_self (a : NNRat) (h : a ≠ 0) : a * inverse a h = 1 :=
   ext (Rat.mul_inv_cancel (a : Rat) (val_ne_zero_of_ne_zero h))
+
+/-- The exact nonnegative rationals carry the laws used by generic weighted counting. -/
+def semiring : Problib.Algebra.CommutativeSemiringLaws NNRat where
+  additive := {
+    zero := 0
+    add := (· + ·)
+    add_comm := add_comm
+    add_assoc := add_assoc
+    add_zero := add_zero
+  }
+  multiplicative := {
+    one := 1
+    mul := (· * ·)
+    mul_comm := mul_comm
+    mul_assoc := mul_assoc
+    mul_one := mul_one
+  }
+  zero_mul := zero_mul
+  mul_add := mul_add
 
 end NNRat
 

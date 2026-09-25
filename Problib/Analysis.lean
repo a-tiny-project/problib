@@ -40,6 +40,10 @@ public import Problib.Analysis.Real.RatioTest
 public import Problib.Analysis.Real.FactorialSeries
 public import Problib.Analysis.Real.SignedSeries.Extended
 public import Problib.Analysis.Real.SignedSeries.Products
+public import Problib.Analysis.Real.PowerSeries.PolynomialAnalytic
+public import Problib.Analysis.Real.PowerSeries.SubstitutionComposition
+public import Problib.Analysis.Real.FiniteVector.Borel
+public import Problib.Analysis.PAP.Derivative
 public import Problib.Analysis.Real.Dominated
 public import Problib.Analysis.Real.Leibniz
 public import Problib.Analysis.Real.Composition

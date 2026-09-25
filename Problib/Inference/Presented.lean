@@ -35,7 +35,7 @@ namespace Problib.Inference
 
 open Problib.Real Problib.Measure
 
-universe u v t
+universe u v w t
 
 variable {α : Type u} {β : Type v} {source : Space α} {result : Space β}
 
@@ -169,6 +169,83 @@ theorem projected_chain_converges (chain : PresentedChain.{u, v, t} source resul
     (fun count => Giry.Law.totalVariation_map (chain.retAt input) (chain.retAt_measurable input)
       (chain.stateLaw input (chain.point start) count) (stationary input))
     (converges input start)
+
+/-- Under a uniform minorization, total variation to an invariant law
+vanishes from every start law. The contraction bound decays geometrically
+across blocks, so its upper limit is below every positive tolerance. -/
+theorem minorization_vanishes {σ : Type t} {space : Space σ}
+    {kernel : Kernel space space} {steps : Nat} {weight : NNReal}
+    {reference : Giry.Law space}
+    (minor : Kernel.Minorization kernel steps weight reference)
+    (π μ : Giry.Law space) (invariant : π.val.bind kernel = π.val) :
+    Vanishes (fun count => Giry.Law.totalVariation
+      ⟨μ.val.bind (Kernel.iterate kernel count),
+        μ.property.bind (Kernel.iterate kernel count)
+          (Kernel.iterate_isProbability kernel minor.markov count)⟩ π) := by
+  apply ENNReal.le_antisymm _ (ENNReal.zero_le _)
+  apply ENNReal.le_of_forall_positive_le_add
+  intro tolerance positive
+  rw [ENNReal.zero_add]
+  rcases ENNReal.pow_eventually_lt (Kernel.minorization_decay_base_lt_one minor) positive with
+    ⟨stage, small⟩
+  refine ENNReal.le_trans (ENNReal.iInf_le _ (stage * steps)) (ENNReal.iSup_le fun offset => ?_)
+  have quotient : stage ≤ (stage * steps + offset) / steps :=
+    (Nat.le_div_iff_mul_le minor.stepsPositive).mpr (Nat.le_add_right _ _)
+  have rate := Kernel.minorization_contraction minor π μ invariant (stage * steps + offset)
+  have scaled := ENNReal.mul_le_mul_left (Giry.Law.totalVariation_le_one μ π)
+    (ENNReal.pow (ENNReal.sub ENNReal.one (ENNReal.finite weight))
+      ((stage * steps + offset) / steps))
+  rw [ENNReal.mul_one] at scaled
+  exact ENNReal.le_trans (ENNReal.le_trans rate scaled) (small _ quotient).left
+
+/-- The chain read through a further return. The states, steps and initial law
+stay, and the output is the return applied to the chain's output at the same
+input. -/
+@[expose] def PresentedChain.through {γ : Type w} {target : Space γ}
+    (chain : PresentedChain.{u, v, t} source result) (ret : α × β → γ)
+    (measurable : MeasurableMap (Space.product source result) target ret) :
+    PresentedChain.{u, w, t} source target where
+  State := chain.State
+  space := chain.space
+  initial := chain.initial
+  step := chain.step
+  ret := fun pair => ret (pair.1, chain.ret pair)
+  measurable := MeasurableMap.comp measurable
+    (Space.pair_measurable (Space.first_measurable source chain.space) chain.measurable)
+  markov := chain.markov
+  initial_markov := chain.initial_markov
+
+/-- A chain that converges to a presentation's joint converges, read through
+the presentation's return, to the presented kernel. The invariant state law is
+the same, and a pushforward cannot increase total variation. -/
+theorem through_converges {γ : Type w} {target : Space γ} {kernel : Kernel source target}
+    {joint : Kernel source result} {ret : α × β → γ}
+    {measurable : MeasurableMap (Space.product source result) target ret}
+    (presents : Kernel.Presents kernel joint ret measurable)
+    (chain : PresentedChain.{u, v, t} source result)
+    (convergent : PresentedInvariantConvergent joint chain) :
+    PresentedInvariantConvergent kernel (chain.through ret measurable) := by
+  intro input
+  obtain ⟨stationary, invariant, image, converges⟩ := convergent input
+  have outer : MeasurableMap result target (fun point => ret (input, point)) :=
+    Kernel.section_measurable measurable input
+  have through : ∀ law : Giry.Law chain.space,
+      (chain.through ret measurable).image input law =
+        ⟨(chain.image input law).val.map (fun point => ret (input, point)) outer,
+          (chain.image input law).property.map _ outer⟩ := fun law =>
+    Subtype.ext (Measure.map_comp law.val (chain.retAt input) (fun point => ret (input, point))
+      (chain.retAt_measurable input) outer).symm
+  refine ⟨stationary, invariant, ?_, fun start => ?_⟩
+  · rw [through]
+    change (chain.image input stationary).val.map _ outer = kernel input
+    rw [image]
+    exact presents input
+  · refine vanishes_of_le (fun count => ?_) (converges start)
+    change ENNReal.le (Giry.Law.totalVariation
+      ((chain.through ret measurable).image input (chain.stateLaw input (chain.point start) count))
+      ((chain.through ret measurable).image input stationary)) _
+    rw [through, through]
+    exact Giry.Law.totalVariation_map _ outer _ _
 
 /-- Convergence from every start state gives convergence from a start law,
 once the per-state distances are measurable. The mixture's distance is at most

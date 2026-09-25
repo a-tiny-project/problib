@@ -508,13 +508,27 @@ def Irreducible
     ENNReal.lt ENNReal.zero
       ((iterate kernel steps input) (Set.singleton output))
 
+/-- The state `output` is reached from `input` with positive probability at
+some finite time. -/
+def Reaches
+    (kernel : Kernel (Space.discrete α) (Space.discrete α)) (input output : α) : Prop :=
+  ∃ steps : Nat,
+    ENNReal.lt ENNReal.zero
+      ((iterate kernel steps input) (Set.singleton output))
+
+/-- At one state, the greatest common divisor of the positive return times is
+one. -/
+def AperiodicAt
+    (kernel : Kernel (Space.discrete α) (Space.discrete α)) (point : α) : Prop :=
+  ∀ divisor : Nat,
+    (∀ steps, ENNReal.lt ENNReal.zero
+      ((iterate kernel steps point) (Set.singleton point)) →
+      divisor ∣ steps) → divisor = 1
+
 /-- The greatest common divisor of the positive return times is one. -/
 def Aperiodic
     (kernel : Kernel (Space.discrete α) (Space.discrete α)) : Prop :=
-  ∀ input : α, ∀ divisor : Nat,
-    (∀ steps, ENNReal.lt ENNReal.zero
-      ((iterate kernel steps input) (Set.singleton input)) →
-      divisor ∣ steps) → divisor = 1
+  ∀ input : α, AperiodicAt kernel input
 
 private theorem positive_path_comp
     (kernel : Kernel (Space.discrete α) (Space.discrete α))
@@ -587,17 +601,59 @@ private theorem probability_positive_singleton
   rw [equal, Measure.zero_apply] at total
   exact False.elim (ENNReal.one_ne_zero total.symm)
 
+/-- One step of positive probability followed by a reach is a reach. -/
+theorem reaches_step
+    (kernel : Kernel (Space.discrete α) (Space.discrete α))
+    {input middle output : α}
+    (first : ENNReal.lt ENNReal.zero (kernel input (Set.singleton middle)))
+    (rest : Reaches kernel middle output) :
+    Reaches kernel input output := by
+  rcases rest with ⟨later, secondPositive⟩
+  have onePositive : ENNReal.lt ENNReal.zero
+      ((iterate kernel 1 input) (Set.singleton middle)) := by
+    rw [iterate_succ, iterate_zero, Kernel.comp_apply,
+      Measure.bind_deterministic, Measure.map_id]
+    exact first
+  exact ⟨1 + later,
+    positive_path_comp kernel input middle output 1 later onePositive secondPositive⟩
+
+omit [DecidableEq α] in
+/-- A state reaches itself. -/
+theorem reaches_refl
+    (kernel : Kernel (Space.discrete α) (Space.discrete α)) (point : α) :
+    Reaches kernel point point := by
+  refine ⟨0, ?_⟩
+  rw [iterate_zero, Kernel.deterministic_apply, Measure.dirac_apply_of_mem]
+  · exact ENNReal.zero_lt_iff_ne_zero.mpr ENNReal.one_ne_zero
+  · exact Space.discrete_measurable _
+  · rfl
+
+omit [DecidableEq α] in
+/-- A state that holds with positive probability is aperiodic: one is a
+return time. -/
+theorem aperiodicAt_of_hold
+    (kernel : Kernel (Space.discrete α) (Space.discrete α)) {point : α}
+    (hold : ENNReal.lt ENNReal.zero (kernel point (Set.singleton point))) :
+    AperiodicAt kernel point := by
+  intro divisor divides
+  have once : ENNReal.lt ENNReal.zero
+      ((iterate kernel 1 point) (Set.singleton point)) := by
+    rw [iterate_succ, iterate_zero, Kernel.comp_apply,
+      Measure.bind_deterministic, Measure.map_id]
+    exact hold
+  exact Nat.dvd_one.mp (divides 1 once)
+
 private theorem positive_return
     (enumeration : List α) (listed : FiniteEnumeration enumeration)
     (kernel : Kernel (Space.discrete α) (Space.discrete α))
     (markov : ∀ input, Measure.IsProbability (kernel input))
-    (irreducible : Irreducible kernel) (point : α) :
+    (point : α) (accessible : ∀ input, Reaches kernel input point) :
     ∃ steps : Nat, 0 < steps ∧
       ENNReal.lt ENNReal.zero
         ((iterate kernel steps point) (Set.singleton point)) := by
   rcases probability_positive_singleton enumeration listed (kernel point) (markov point) with
     ⟨middle, firstPositive⟩
-  rcases irreducible middle point with ⟨later, secondPositive⟩
+  rcases accessible middle with ⟨later, secondPositive⟩
   have onePositive : ENNReal.lt ENNReal.zero
       ((iterate kernel 1 point) (Set.singleton middle)) := by
     rw [iterate_succ, iterate_zero, Kernel.comp_apply,
@@ -875,20 +931,21 @@ private theorem list_entry_le  (values : List α)
         exact Nat.le_max_left _ _
       · exact Nat.le_trans (induction inTail) (Nat.le_max_right _ _)
 
-/-- On a nonempty finite state space, irreducibility and aperiodicity give a
-positive column in one power, hence a uniform minorization. -/
-theorem finite_irreducible_aperiodic_minorization
+/-- On a finite state space, a state that every state reaches and that is
+aperiodic gives a positive column in one power, hence a uniform minorization
+toward that state. The chain need not be irreducible: states the target never
+returns to are allowed. -/
+theorem finite_accessible_aperiodic_minorization
     (enumeration : List α) (listed : FiniteEnumeration enumeration)
     (kernel : Kernel (Space.discrete α) (Space.discrete α))
     (markov : ∀ input, Measure.IsProbability (kernel input))
-    (nonempty : Nonempty (α))
-    (irreducible : Irreducible kernel)
-    (aperiodic : Aperiodic kernel) :
+    (target : α)
+    (accessible : ∀ input, Reaches kernel input target)
+    (aperiodic : AperiodicAt kernel target) :
     ∃ steps : Nat, ∃ weight : NNReal,
       ∃ reference : Giry.Law (Space.discrete α),
         Minorization kernel steps weight reference := by
   classical
-  let target : α := Classical.choice nonempty
   let returns : Nat → Prop := fun steps =>
     ENNReal.lt ENNReal.zero
       ((iterate kernel steps target) (Set.singleton target))
@@ -905,16 +962,16 @@ theorem finite_irreducible_aperiodic_minorization
       returns (first + second) :=
     positive_path_comp kernel target target target first second
       firstPositive secondPositive
-  rcases positive_return enumeration listed kernel markov irreducible target with
+  rcases positive_return enumeration listed kernel markov target accessible with
     ⟨period, periodPositive, periodPresent⟩
   rcases semigroup_eventually returns period periodPositive periodPresent
-      returnZero returnAdd (aperiodic target) with
+      returnZero returnAdd aperiodic with
     ⟨threshold, laterReturns⟩
   let entry : α → Nat := fun input =>
-    (irreducible input target).choose
+    (accessible input).choose
   have entryPositive (input : α) : ENNReal.lt ENNReal.zero
       ((iterate kernel (entry input) input) (Set.singleton target)) :=
-    (irreducible input target).choose_spec
+    (accessible input).choose_spec
   let bound := enumeration.foldr
     (fun point current => max (entry point) current) 0
   have entryBound (input : α) : entry input ≤ bound :=
@@ -945,6 +1002,21 @@ theorem finite_irreducible_aperiodic_minorization
   exact ⟨steps, weight,
     ⟨Measure.dirac _ target, Measure.IsProbability.dirac _ target⟩,
     certificate⟩
+
+/-- On a nonempty finite state space, irreducibility and aperiodicity give a
+positive column in one power, hence a uniform minorization. -/
+theorem finite_irreducible_aperiodic_minorization
+    (enumeration : List α) (listed : FiniteEnumeration enumeration)
+    (kernel : Kernel (Space.discrete α) (Space.discrete α))
+    (markov : ∀ input, Measure.IsProbability (kernel input))
+    (nonempty : Nonempty (α))
+    (irreducible : Irreducible kernel)
+    (aperiodic : Aperiodic kernel) :
+    ∃ steps : Nat, ∃ weight : NNReal,
+      ∃ reference : Giry.Law (Space.discrete α),
+        Minorization kernel steps weight reference :=
+  finite_accessible_aperiodic_minorization enumeration listed kernel markov
+    (Classical.choice nonempty) (fun input => irreducible input _) (aperiodic _)
 
 /-- A positive column of a rational matrix power supplies a uniform
 minorization of the represented Markov kernel. The weight is the minimum of

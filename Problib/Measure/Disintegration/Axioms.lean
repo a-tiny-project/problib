@@ -1,4 +1,5 @@
 import Problib.Measure.Disintegration
+import Problib.Measure.Disintegration.Pushforward
 import Trust.Command
 
 #register_trust_claims allowing [propext, Quot.sound, Classical.choice] claims [
@@ -48,12 +49,20 @@ import Trust.Command
   Problib.Measure.Measure.Disintegration.ofUnit,
   Problib.Measure.Measure.Disintegration.ofUnit_isProbability,
   Problib.Measure.Measure.infinitePartMismatchSet_measurable,
-  Problib.Measure.Measure.Disintegration.disintegrates
+  Problib.Measure.Measure.Disintegration.disintegrates,
+  Problib.Measure.Measure.secondMarginal_graphJoint,
+  Problib.Measure.Measure.lintegral_graphJoint,
+  Problib.Measure.Measure.density_pushforward_of_disintegration,
+  Problib.Measure.Measure.density_pushforward_normalized,
+  Problib.Measure.Measure.density_reference_change,
+  Problib.Measure.Measure.density_map_of_branches,
+  Problib.Measure.Measure.density_map_translate
 ]
 
 #audit_registered_claims
 
-#audit_package [Problib.Measure.Disintegration] allowing [
+#audit_package [Problib.Measure.Disintegration,
+  Problib.Measure.Disintegration.Pushforward] allowing [
   propext,
   Quot.sound,
   Classical.choice

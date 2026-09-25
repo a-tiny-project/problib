@@ -68,6 +68,42 @@ public theorem pair_left_measurable (input : alpha) :
           (target := target) input) :=
   rfl
 
+/-- Attaching an input coordinate preserves a zero kernel. -/
+public theorem attach_zero (finite : IsSFinite (Kernel.zero source target)) :
+    Kernel.attach (Kernel.zero source target) finite =
+      Kernel.zero source (Space.product source target) := by
+  apply Kernel.ext
+  intro input
+  rw [Kernel.attach_apply, Kernel.zero_apply, Measure.map_zero]
+  rfl
+
+/-- Attaching an input coordinate distributes over kernel addition, for any
+s-finite witnesses of the same three kernels. -/
+public theorem attach_add (first second : Kernel source target)
+    (firstFinite : IsSFinite first) (secondFinite : IsSFinite second)
+    (sumFinite : IsSFinite (Kernel.add first second)) :
+    Kernel.attach (Kernel.add first second) sumFinite =
+      Kernel.add (Kernel.attach first firstFinite) (Kernel.attach second secondFinite) := by
+  apply Kernel.ext
+  intro input
+  rw [Kernel.attach_apply, Kernel.add_apply, Measure.map_add,
+    Kernel.add_apply, Kernel.attach_apply, Kernel.attach_apply]
+
+/-- Attaching an input coordinate distributes over a countable sum, for any
+s-finite witness of that sum. -/
+public theorem attach_sum (kernels : Nat → Kernel source target)
+    (finite : ∀ index, IsSFinite (kernels index))
+    (sumFinite : IsSFinite (Kernel.sum kernels)) :
+    Kernel.attach (Kernel.sum kernels) sumFinite =
+      Kernel.sum (fun index => Kernel.attach (kernels index) (finite index)) := by
+  apply Kernel.ext
+  intro input
+  rw [Kernel.attach_apply, Kernel.sum_apply, Measure.map_sum,
+    Kernel.sum_apply]
+  apply congrArg Measure.sum
+  funext index
+  rfl
+
 namespace IsFinite
 
 /-- Attaching the source coordinate preserves a uniform finite bound. -/

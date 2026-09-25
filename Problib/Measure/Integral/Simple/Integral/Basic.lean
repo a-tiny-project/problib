@@ -336,4 +336,25 @@ public theorem integral_congr {left right : SimpleFunction source}
 
 end SimpleFunction
 
+open SimpleFunction (finiteSum)
+
+/-- A finite sum of copies of one value is the count times the value. -/
+public theorem finiteSum_map_const {Index : Type} (indices : List Index) (value : ENNReal) :
+    finiteSum (indices.map fun _ => value) =
+      ENNReal.mul (ENNReal.ofRat (indices.length : Rat) Rat.natCast_nonneg) value := by
+  induction indices with
+  | nil =>
+      show ENNReal.zero = ENNReal.mul (ENNReal.ofRat 0 (by decide)) value
+      rw [ENNReal.ofRat_zero, ENNReal.zero_mul]
+  | cons index indices induction =>
+      have count : ENNReal.ofRat ((indices.length + 1 : Nat) : Rat) Rat.natCast_nonneg =
+          ENNReal.add (ENNReal.ofRat (indices.length : Rat) Rat.natCast_nonneg) ENNReal.one := by
+        rw [← ENNReal.ofRat_one, ← ENNReal.ofRat_add]
+        congr 1
+        exact Rat.natCast_add _ _
+      show ENNReal.add value (finiteSum (indices.map fun _ => value)) =
+        ENNReal.mul (ENNReal.ofRat ((indices.length + 1 : Nat) : Rat) Rat.natCast_nonneg) value
+      rw [induction, count, ENNReal.mul_comm (ENNReal.add _ ENNReal.one) value,
+        ENNReal.mul_add, ENNReal.mul_one, ENNReal.mul_comm value, ENNReal.add_comm value]
+
 end Problib.Measure

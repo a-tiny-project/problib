@@ -241,4 +241,35 @@ public theorem lintegral_sum (measures : Nat → Measure space)
       ENNReal.tsum (fun index => lintegral (measures index) function) :=
   lintegral_sum_measure function measures
 
+open SimpleFunction (finiteSum)
+
+namespace Measure
+
+/-- The finite sum of a list of measures. -/
+@[expose] public noncomputable def listSum : List (Measure space) → Measure space
+  | [] => zero space
+  | measure :: measures => add measure (listSum measures)
+
+public theorem listSum_apply (measures : List (Measure space)) {set : Set alpha}
+    (setMeasurable : space.Measurable set) :
+    listSum measures set = finiteSum (measures.map fun measure => measure set) := by
+  induction measures with
+  | nil => exact zero_apply set
+  | cons measure measures induction =>
+      rw [listSum, add_apply_measurable _ _ setMeasurable, induction]
+      rfl
+
+end Measure
+
+/-- Integration against a finite sum of measures is the finite sum of the
+integrals. -/
+public theorem lintegral_listSum (measures : List (Measure space)) (function : alpha → ENNReal) :
+    lintegral (Measure.listSum measures) function =
+      finiteSum (measures.map fun measure => lintegral measure function) := by
+  induction measures with
+  | nil => exact lintegral_zero_measure function
+  | cons measure measures induction =>
+      rw [Measure.listSum, lintegral_add_measure, induction]
+      rfl
+
 end Problib.Measure

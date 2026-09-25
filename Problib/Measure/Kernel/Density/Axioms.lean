@@ -1,4 +1,5 @@
 import Problib.Measure.Kernel.Density
+import Problib.Measure.Kernel.Density.Rules
 import Trust.Command
 
 #register_trust_claims allowing [propext, Quot.sound, Classical.choice] claims [
@@ -11,12 +12,23 @@ import Trust.Command
   Problib.Measure.Kernel.withDensity_tsum,
   Problib.Measure.Kernel.IsFinite.withDensity_of_bounded,
   Problib.Measure.Kernel.IsFinite.withDensity,
-  Problib.Measure.Kernel.IsSFinite.withDensity
+  Problib.Measure.Kernel.IsSFinite.withDensity,
+  Problib.Measure.Kernel.densityReturn,
+  Problib.Measure.Kernel.densityReturnAtom,
+  Problib.Measure.Kernel.densityBind,
+  Problib.Measure.Kernel.density_score,
+  Problib.Measure.Kernel.density_normalize,
+  Problib.Measure.Kernel.density_superpose,
+  Problib.Measure.Kernel.density_product_two,
+  Problib.Measure.Kernel.density_mem_of_limit,
+  Problib.Measure.Kernel.densityLoop,
+  Problib.Measure.Kernel.density_recur_of_increments
 ]
 
 #audit_registered_claims
 
-#audit_package [Problib.Measure.Kernel.Density] allowing [
+#audit_package [Problib.Measure.Kernel.Density,
+  Problib.Measure.Kernel.Density.Rules] allowing [
   propext,
   Quot.sound,
   Classical.choice

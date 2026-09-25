@@ -1,6 +1,8 @@
 module
 
 public import Problib.Measure.Decomposition.RadonNikodym
+public import Problib.Measure.Real.Density
+public import Problib.Measure.Integral.Density.AlmostEverywhere
 
 set_option autoImplicit false
 
@@ -163,5 +165,72 @@ public theorem s_finite_absolute_continuity_does_not_imply_derivative :
     (Measure.SFinite.ofFinite (Measure.IsFinite.dirac _ ())) reference_sFinite
     dirac_absolutelyContinuous with ⟨derivative⟩
   exact dirac_has_no_density derivative.density derivative.reconstruct
+
+end Problib.Measure.Necessity.Density
+
+-- D1a additions below. The original necessity results above are preserved.
+
+namespace Problib.Measure.Necessity.Density
+
+open Problib.Real Problib.Measure.Real
+
+/-- A Dirac conditional cannot have a density against atomless uniform
+measure, although a mixture of these conditionals can. -/
+public theorem dirac_not_density_uniform01 (point : UnitInterval)
+    (p : UnitInterval → ENNReal) :
+    ¬Measure.IsDensity (Measure.dirac unitBorel point) uniform01 p := by
+  intro density
+  have dominated : Measure.AbsolutelyContinuous
+      (Measure.dirac unitBorel point) uniform01 :=
+    density.absolutelyContinuous
+  have nullPoint : uniform01.NullSet (Set.singleton point) :=
+    uniform01_singleton point
+  have forced := dominated (unit_singleton_measurable point) nullPoint
+  rw [Measure.dirac_apply_of_mem unitBorel point
+    (unit_singleton_measurable point) (show point ∈ Set.singleton point from rfl)] at forced
+  exact ENNReal.one_ne_zero forced
+
+/-- The identity mixture has the uniform law even though every conditional
+is singular to that same law. -/
+public theorem singular_conditional_mixture_is_uniform :
+    uniform01.bind
+      (Kernel.deterministic (fun x : UnitInterval => x)
+        (MeasurableMap.identity unitBorel)) = uniform01 := by
+  rw [Measure.bind_deterministic]
+  exact Measure.map_id uniform01
+
+public theorem singular_conditionals_have_no_common_uniform_density :
+    ¬∃ b : UnitInterval → UnitInterval → ENNReal,
+      ∀ point, Measure.IsDensity
+        (Measure.dirac unitBorel point) uniform01 (b point) := by
+  rintro ⟨b, all⟩
+  exact dirac_not_density_uniform01 unitZero _ (all unitZero)
+
+/-- The diagonal pushforward of uniform01 charges a product-null set. -/
+public theorem diagonal_not_dominated
+    (productFinite : Measure.SFinite uniform01) :
+    ¬Measure.AbsolutelyContinuous
+      (uniform01.map (fun x : UnitInterval => (x, x))
+        (Space.pair_measurable (MeasurableMap.identity unitBorel)
+          (MeasurableMap.identity unitBorel)))
+      (Measure.prod uniform01 uniform01 productFinite) := by
+  intro dominated
+  have nullDiagonal := Real.uniform01_prod_diagonal_null productFinite
+  have graphMass :
+      (uniform01.map (fun x : UnitInterval => (x, x))
+        (Space.pair_measurable (MeasurableMap.identity unitBorel)
+          (MeasurableMap.identity unitBorel)))
+        (fun pair => pair.1 = pair.2) = ENNReal.one := by
+    rw [Measure.map_apply _ _ _ unit_diagonal_measurable]
+    have preimage : Set.preimage (fun x : UnitInterval => (x, x))
+        (fun pair : UnitInterval × UnitInterval => pair.1 = pair.2) =
+        Set.univ := by
+      apply Set.ext
+      intro point
+      exact ⟨fun _ => True.intro, fun _ => rfl⟩
+    rw [preimage, uniform01_univ]
+  have zeroMass := dominated unit_diagonal_measurable nullDiagonal
+  rw [graphMass] at zeroMass
+  exact ENNReal.one_ne_zero zeroMass
 
 end Problib.Measure.Necessity.Density

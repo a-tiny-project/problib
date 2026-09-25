@@ -12,6 +12,8 @@ public import Problib.Measure.Real.Order
 public import Problib.Measure.Real.Arithmetic
 public import Problib.Measure.Real.Interval
 public import Problib.Measure.Extended.Conversion
+public import Problib.Measure.Kernel.Iteration.Minorization
+public import Problib.Measure.Normalization
 set_option autoImplicit false
 
 /-! Metropolis–Hastings kernels.
@@ -33,7 +35,9 @@ clamped weight (`metropolis_balance`), so the Metropolis step leaves the
 weighted reference invariant (`metropolis_invariant`). A proposal that ignores
 the current state is reversible for its own law (`independence_reversible`),
 and under a weight bound `c ≤ M` the independence sampler minorizes its target
-(`independence_minorization`): `π(A) ≤ M·K(x, A)` from every state `x`. -/
+(`independence_minorization`): `π(A) ≤ M·K(x, A)` from every state `x`, which
+is a one-step minorization toward the normalized target with weight `Z / M`
+(`independence_minorizes`). -/
 
 namespace Problib.Inference
 
@@ -477,6 +481,247 @@ theorem independence_minorization (prior : Measure space) (priorFinite : Measure
         (indicator state)))
       (ENNReal.mul (metropolisAccept weight (state, proposed)) (indicator proposed))
     rwa [ENNReal.add_zero] at kept
+
+/-- The independence sampler with a weight bounded by `M` is minorized in one
+step toward its normalized target, with weight `Z / M` for the target's total
+mass `Z`. -/
+theorem independence_minorizes (prior : Measure space) (priorFinite : Measure.SFinite prior)
+    (priorProbability : Measure.IsProbability prior)
+    {weight : α → Carrier} (weightMeasurable : MeasurableMap space borel weight)
+    {bound : Carrier} (bounded : ∀ state, Dedekind.le (weight state) bound)
+    (normalizable : Measure.IsNormalizable
+      (prior.withDensity fun proposed => ENNReal.ofReal (weight proposed))) :
+    ∃ scale : NNReal,
+      Kernel.Minorization
+        (mhKernel (Kernel.const space prior) (Kernel.IsSFinite.const space priorFinite)
+          (metropolisAccept weight) (metropolisAccept_measurable weightMeasurable))
+        1 scale
+        ⟨Measure.normalize _ normalizable, Measure.normalize_isProbability _ normalizable⟩ := by
+  let target := prior.withDensity fun proposed => ENNReal.ofReal (weight proposed)
+  let kernel := mhKernel (Kernel.const space prior) (Kernel.IsSFinite.const space priorFinite)
+    (metropolisAccept weight) (metropolisAccept_measurable weightMeasurable)
+  obtain ⟨mass, total⟩ := ENNReal.exists_finite_of_finite normalizable.finite.univ_finite
+  have massNonzero : mass ≠ NNReal.zero := fun zero =>
+    normalizable.nonzero (total.trans (congrArg ENNReal.finite zero))
+  have markov : ∀ state, Measure.IsProbability (kernel state) :=
+    mh_kernel_markov (Kernel.IsSFinite.const space priorFinite) (fun _ => priorProbability)
+      (metropolisAccept_measurable weightMeasurable) (metropolisAccept_le_one weight)
+  let limit := NNReal.ofReal bound
+  have point : α := Classical.choice priorProbability.nonempty
+  have massBelow : NNReal.le mass limit := by
+    have whole := independence_minorization prior priorFinite weightMeasurable bounded point
+      space.univ
+    rw [(markov point).univ_eq_one, ENNReal.mul_one] at whole
+    change ENNReal.le (target Set.univ) (ENNReal.finite limit) at whole
+    rw [total] at whole
+    exact whole
+  have massPositive : NNReal.lt NNReal.zero mass := (NNReal.zero_lt_iff_ne_zero mass).mpr massNonzero
+  have limitPositive : NNReal.lt NNReal.zero limit := NNReal.lt_of_lt_of_le massPositive massBelow
+  have limitNonzero : limit ≠ NNReal.zero := (NNReal.zero_lt_iff_ne_zero limit).mp limitPositive
+  refine ⟨NNReal.div mass limit, ⟨markov, by decide, NNReal.div_positive massPositive limitPositive,
+    ?_, ?_⟩⟩
+  · apply NNReal.le_of_mul_le_mul_right limitPositive
+    rw [NNReal.div_mul_cancel mass limitNonzero, NNReal.one_mul]
+    exact massBelow
+  · intro input event eventMeasurable
+    have step : Kernel.iterate kernel 1 input = kernel input := by
+      rw [Kernel.iterate_succ, Kernel.iterate_zero, Kernel.comp_apply,
+        Measure.bind_deterministic, Measure.map_id]
+    rw [step]
+    change ENNReal.le
+      ((Measure.smul (ENNReal.finite (NNReal.div mass limit)) (Measure.normalize target normalizable))
+        event) _
+    rw [Measure.normalize_eq_of_total_eq target normalizable total,
+      Measure.smul_apply_measurable _ _ eventMeasurable,
+      Measure.smul_apply_measurable _ _ eventMeasurable]
+    have lower := independence_minorization prior priorFinite weightMeasurable bounded input
+      eventMeasurable
+    change ENNReal.le (target event) (ENNReal.mul (ENNReal.finite limit) (kernel input event)) at lower
+    have scaled := ENNReal.mul_le_mul_left
+      (ENNReal.mul_le_mul_left lower (ENNReal.finite (NNReal.div NNReal.one mass)))
+      (ENNReal.finite (NNReal.div mass limit))
+    refine ENNReal.le_trans scaled ?_
+    rw [← ENNReal.mul_assoc, ← ENNReal.mul_assoc]
+    have cancel : ENNReal.mul (ENNReal.mul (ENNReal.finite (NNReal.div mass limit))
+        (ENNReal.finite (NNReal.div NNReal.one mass))) (ENNReal.finite limit) = ENNReal.one := by
+      rw [ENNReal.mul_comm (ENNReal.finite (NNReal.div mass limit)), ENNReal.mul_assoc]
+      change ENNReal.finite (NNReal.mul (NNReal.div NNReal.one mass)
+        (NNReal.mul (NNReal.div mass limit) limit)) = ENNReal.finite NNReal.one
+      rw [NNReal.div_mul_cancel mass limitNonzero, NNReal.div_mul_cancel NNReal.one massNonzero]
+    rw [cancel, ENNReal.one_mul]
+    exact ENNReal.le_refl _
+
+/-! ### One-step positivity
+
+A Metropolis–Hastings step reaches a set at least through its accepted
+proposals into the set, and a state's set at least through the rejected
+proposals from it (`mh_kernel_accepted_le`, `mh_kernel_rejected_le`). With the
+Metropolis acceptance, a proposal toward a positive weight is accepted with
+positive probability, and a proposal toward a smaller weight is rejected with
+positive probability (`metropolisAccept_pos`, `metropolisAccept_lt_one`). At a
+measurable point these give a positive move and a positive hold
+(`mh_move_positive`, `mh_hold_positive`). -/
+
+/-- One step reaches a set at least through the accepted proposals into it. -/
+theorem mh_kernel_accepted_le (proposal : Kernel space space)
+    (proposalFinite : Kernel.IsSFinite proposal) (accept : α × α → ENNReal)
+    (acceptMeasurable : ENNRealMeasurable (Space.product space space) accept)
+    (state : α) {set : Set α} (setMeasurable : space.Measurable set) :
+    ENNReal.le
+      (lintegral (proposal state) fun proposed =>
+        ENNReal.mul (accept (state, proposed)) (ennrealIndicator set (fun _ => ENNReal.one) proposed))
+      (mhKernel proposal proposalFinite accept acceptMeasurable state set) := by
+  rw [apply_eq_lintegral_indicator _ setMeasurable,
+    lintegral_mh_kernel _ _ _ _ _
+      (ENNRealMeasurable.indicator setMeasurable (ENNRealMeasurable.constant _ _))]
+  apply lintegral_mono
+  intro proposed
+  have kept := ENNReal.add_le_add_left (ENNReal.zero_le
+    (ENNReal.mul (ENNReal.sub ENNReal.one (accept (state, proposed)))
+      (ennrealIndicator set (fun _ => ENNReal.one) state)))
+    (ENNReal.mul (accept (state, proposed)) (ennrealIndicator set (fun _ => ENNReal.one) proposed))
+  rwa [ENNReal.add_zero] at kept
+
+/-- One step stays in a set containing the state at least through the
+rejected proposals. -/
+theorem mh_kernel_rejected_le (proposal : Kernel space space)
+    (proposalFinite : Kernel.IsSFinite proposal) (accept : α × α → ENNReal)
+    (acceptMeasurable : ENNRealMeasurable (Space.product space space) accept)
+    (state : α) {set : Set α} (setMeasurable : space.Measurable set) :
+    ENNReal.le
+      (ENNReal.mul (ennrealIndicator set (fun _ => ENNReal.one) state)
+        (lintegral (proposal state) fun proposed =>
+          ENNReal.sub ENNReal.one (accept (state, proposed))))
+      (mhKernel proposal proposalFinite accept acceptMeasurable state set) := by
+  have rejectMeasurable : ENNRealMeasurable space
+      (fun proposed => ENNReal.sub ENNReal.one (accept (state, proposed))) :=
+    (ENNRealMeasurable.sub (ENNRealMeasurable.constant _ ENNReal.one) acceptMeasurable).comp
+      (Kernel.pair_left_measurable state)
+  rw [← lintegral_smul _ _ rejectMeasurable, apply_eq_lintegral_indicator _ setMeasurable,
+    lintegral_mh_kernel _ _ _ _ _
+      (ENNRealMeasurable.indicator setMeasurable (ENNRealMeasurable.constant _ _))]
+  apply lintegral_mono
+  intro proposed
+  have kept := ENNReal.add_le_add_right (ENNReal.zero_le
+    (ENNReal.mul (accept (state, proposed)) (ennrealIndicator set (fun _ => ENNReal.one) proposed)))
+    (ENNReal.mul (ENNReal.sub ENNReal.one (accept (state, proposed)))
+      (ennrealIndicator set (fun _ => ENNReal.one) state))
+  rw [ENNReal.zero_add] at kept
+  rw [ENNReal.mul_comm (ennrealIndicator set (fun _ => ENNReal.one) state)]
+  exact kept
+
+/-- A proposal toward a positive weight is accepted with positive
+probability. -/
+theorem metropolisAccept_pos {weight : α → Carrier} {pair : α × α}
+    (positive : Dedekind.lt Dedekind.zero (weight pair.2)) :
+    ENNReal.lt ENNReal.zero (metropolisAccept weight pair) := by
+  by_cases below : Dedekind.le (weight pair.1) (weight pair.2)
+  · rw [metropolisAccept_eq_one below positive]
+    exact ENNReal.zero_lt_iff_ne_zero.mpr ENNReal.one_ne_zero
+  · have above := not_le_iff_lt.mp below
+    have balance := metropolis_balance weight pair
+    rw [ENNReal.min_eq_right (ENNReal.ofReal_monotone above.1)] at balance
+    apply ENNReal.zero_lt_iff_ne_zero.mpr
+    intro zero
+    rw [zero, ENNReal.mul_zero] at balance
+    exact not_le_iff_lt.mpr positive (ENNReal.ofReal_eq_zero_iff.mp balance.symm)
+
+/-- From a positive weight, a proposal toward a smaller weight is rejected with
+positive probability. -/
+theorem metropolisAccept_lt_one {weight : α → Carrier} {pair : α × α}
+    (current : Dedekind.lt Dedekind.zero (weight pair.1))
+    (below : Dedekind.lt (weight pair.2) (weight pair.1)) :
+    ENNReal.lt (metropolisAccept weight pair) ENNReal.one := by
+  refine ⟨metropolisAccept_le_one weight pair, fun oneBelow => ?_⟩
+  have one := ENNReal.le_antisymm (metropolisAccept_le_one weight pair) oneBelow
+  have balance := metropolis_balance weight pair
+  rw [ENNReal.min_eq_right (ENNReal.ofReal_monotone below.1), one, ENNReal.mul_one] at balance
+  by_cases proposedNonnegative : Dedekind.le Dedekind.zero (weight pair.2)
+  · have smaller := (ENNReal.ofReal_lt_ofReal_iff proposedNonnegative current.1).mpr below
+    rw [balance] at smaller
+    exact smaller.2 smaller.1
+  · rw [ENNReal.ofReal_eq_zero_iff.mpr (not_le_iff_lt.mp proposedNonnegative).1] at balance
+    exact not_le_iff_lt.mpr current (ENNReal.ofReal_eq_zero_iff.mp balance)
+
+/-- A point proposed with positive probability and of positive weight is
+reached in one step with positive probability. -/
+theorem mh_move_positive (proposal : Kernel space space)
+    (proposalFinite : Kernel.IsSFinite proposal) {weight : α → Carrier}
+    (weightMeasurable : MeasurableMap space borel weight) {state point : α}
+    (pointMeasurable : space.Measurable (Set.singleton point))
+    (proposed : ENNReal.lt ENNReal.zero (proposal state (Set.singleton point)))
+    (positive : Dedekind.lt Dedekind.zero (weight point)) :
+    ENNReal.lt ENNReal.zero
+      (mhKernel proposal proposalFinite (metropolisAccept weight)
+        (metropolisAccept_measurable weightMeasurable) state (Set.singleton point)) := by
+  have accepted := mh_kernel_accepted_le proposal proposalFinite (metropolisAccept weight)
+    (metropolisAccept_measurable weightMeasurable) state pointMeasurable
+  have lower := lintegral_mono (proposal state)
+    (lower := ennrealIndicator (Set.singleton point)
+      (fun _ => metropolisAccept weight (state, point)))
+    (upper := fun proposed => ENNReal.mul (metropolisAccept weight (state, proposed))
+      (ennrealIndicator (Set.singleton point) (fun _ => ENNReal.one) proposed)) (by
+    intro candidate
+    classical
+    by_cases equal : candidate = point
+    · subst candidate
+      simp [ennrealIndicator, ennrealPiecewise, Set.singleton, ENNReal.mul_one, ENNReal.le_refl]
+    · simp [ennrealIndicator, ennrealPiecewise, Set.singleton, equal, ENNReal.zero_le])
+  rw [lintegral_indicator _ (Set.singleton point) pointMeasurable, lintegral_const,
+    Measure.restrict_apply_univ] at lower
+  apply ENNReal.zero_lt_iff_ne_zero.mpr
+  intro zero
+  have bounded := ENNReal.le_trans lower accepted
+  rw [zero, ENNReal.le_zero_iff, ENNReal.mul_eq_zero_iff] at bounded
+  rcases bounded with acceptZero | massZero
+  · exact (ENNReal.zero_lt_iff_ne_zero.mp (metropolisAccept_pos positive)) acceptZero
+  · exact (ENNReal.zero_lt_iff_ne_zero.mp proposed) massZero
+
+/-- A state of positive weight holds with positive probability when its
+proposal holds there, or proposes with positive probability a point of smaller
+weight. -/
+theorem mh_hold_positive (proposal : Kernel space space)
+    (proposalFinite : Kernel.IsSFinite proposal) {weight : α → Carrier}
+    (weightMeasurable : MeasurableMap space borel weight) {state : α}
+    (stateMeasurable : space.Measurable (Set.singleton state))
+    (current : Dedekind.lt Dedekind.zero (weight state))
+    (hold : ENNReal.lt ENNReal.zero (proposal state (Set.singleton state)) ∨
+      ∃ point, space.Measurable (Set.singleton point) ∧
+        ENNReal.lt ENNReal.zero (proposal state (Set.singleton point)) ∧
+        Dedekind.lt (weight point) (weight state)) :
+    ENNReal.lt ENNReal.zero
+      (mhKernel proposal proposalFinite (metropolisAccept weight)
+        (metropolisAccept_measurable weightMeasurable) state (Set.singleton state)) := by
+  rcases hold with stays | ⟨point, pointMeasurable, proposed, smaller⟩
+  · exact mh_move_positive proposal proposalFinite weightMeasurable stateMeasurable stays current
+  · have rejected := mh_kernel_rejected_le proposal proposalFinite (metropolisAccept weight)
+      (metropolisAccept_measurable weightMeasurable) state stateMeasurable
+    have member : ennrealIndicator (Set.singleton state) (fun _ => ENNReal.one) state =
+        ENNReal.one := by
+      classical
+      simp [ennrealIndicator, ennrealPiecewise, Set.singleton]
+    rw [member, ENNReal.one_mul] at rejected
+    have lower := lintegral_mono (proposal state)
+      (lower := ennrealIndicator (Set.singleton point)
+        (fun _ => ENNReal.sub ENNReal.one (metropolisAccept weight (state, point))))
+      (upper := fun proposed => ENNReal.sub ENNReal.one (metropolisAccept weight (state, proposed)))
+      (by
+        intro candidate
+        classical
+        by_cases equal : candidate = point
+        · subst candidate
+          simp [ennrealIndicator, ennrealPiecewise, Set.singleton, ENNReal.le_refl]
+        · simp [ennrealIndicator, ennrealPiecewise, Set.singleton, equal, ENNReal.zero_le])
+    rw [lintegral_indicator _ (Set.singleton point) pointMeasurable, lintegral_const,
+      Measure.restrict_apply_univ] at lower
+    have below := metropolisAccept_lt_one (weight := weight) (pair := (state, point)) current smaller
+    apply ENNReal.zero_lt_iff_ne_zero.mpr
+    intro zero
+    have bounded := ENNReal.le_trans lower rejected
+    rw [zero, ENNReal.le_zero_iff, ENNReal.mul_eq_zero_iff] at bounded
+    rcases bounded with rejectZero | massZero
+    · exact below.2 (ENNReal.sub_eq_zero_iff_le.mp rejectZero)
+    · exact (ENNReal.zero_lt_iff_ne_zero.mp proposed) massZero
 
 end Metropolis
 

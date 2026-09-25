@@ -234,6 +234,14 @@ public theorem deterministic (function : alpha → beta)
   rw [Kernel.deterministic_apply, Measure.dirac_apply_univ]
   exact ENNReal.le_refl _
 
+/-- A Markov kernel is finite, with bound one. -/
+public theorem of_markov {kernel : Kernel source target}
+    (markov : ∀ input, Measure.IsProbability (kernel input)) : IsFinite kernel := by
+  refine ⟨⟨ENNReal.one, True.intro, ?_⟩⟩
+  intro input
+  rw [(markov input).univ_eq_one]
+  exact ENNReal.le_refl _
+
 public theorem zero (source : Space alpha) (target : Space beta) :
     IsFinite (Kernel.zero source target) :=
   const source (Measure.IsFinite.zero target)
@@ -307,6 +315,11 @@ namespace IsSFinite
 
 public noncomputable def ofFinite {kernel : Kernel source target}
     (finite : IsFinite kernel) : IsSFinite kernel := finite.toSFinite
+
+/-- A Markov kernel is s-finite, through its bound-one finiteness. -/
+public noncomputable def ofMarkov {kernel : Kernel source target}
+    (markov : ∀ input, Measure.IsProbability (kernel input)) : IsSFinite kernel :=
+  (IsFinite.of_markov markov).toSFinite
 
 public noncomputable def zero (source : Space alpha) (target : Space beta) :
     IsSFinite (Kernel.zero source target) :=

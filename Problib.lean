@@ -4,6 +4,7 @@ import Problib.Countable
 import Problib.Domain
 import Problib.FiniteEnumeration
 import Problib.Inference
+import Problib.Inference.MetropolisHastings.Finite
 import Problib.Linear
 import Problib.Measure
 import Problib.Measure.Kernel.Iteration.Finite

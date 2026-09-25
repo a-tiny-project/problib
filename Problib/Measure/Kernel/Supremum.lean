@@ -87,6 +87,36 @@ public theorem chain_le
   | refl => exact le_refl _
   | step _ induction => exact le_trans induction (monotone _)
 
+/-- A measurable output map preserves pointwise kernel order. -/
+public theorem map_le {resultType : Type w} {result : Space resultType}
+    {first second : Kernel source target}
+    (function : beta → resultType) (measurable : MeasurableMap target result function)
+    (included : le first second) :
+    le (first.map function measurable) (second.map function measurable) := by
+  intro input set setMeasurable
+  rw [Kernel.map_apply, Kernel.map_apply,
+    (first input).map_apply function measurable setMeasurable,
+    (second input).map_apply function measurable setMeasurable]
+  exact included input _ (measurable setMeasurable)
+
+/-- Mapping an increasing kernel limit maps its pointwise supremum. -/
+public theorem map_iSupIncreasing {resultType : Type w} {result : Space resultType}
+    (kernels : Nat → Kernel source target)
+    (increasing : ∀ index, le (kernels index) (kernels (index + 1)))
+    (function : beta → resultType) (measurable : MeasurableMap target result function) :
+    (iSupIncreasing kernels increasing).map function measurable =
+      iSupIncreasing (fun index => (kernels index).map function measurable)
+        (fun index => map_le function measurable (increasing index)) := by
+  apply Kernel.ext_measurable
+  intro input set setMeasurable
+  rw [Kernel.map_apply,
+    (iSupIncreasing kernels increasing input).map_apply function measurable setMeasurable,
+    iSupIncreasing_apply_measurable kernels increasing input (measurable setMeasurable),
+    iSupIncreasing_apply_measurable _ _ input setMeasurable]
+  apply congrArg ENNReal.iSup
+  funext index
+  exact ((kernels index input).map_apply function measurable setMeasurable).symm
+
 /-- Left addition preserves an increasing kernel limit. -/
 public theorem add_iSupIncreasing
     (fixed : Kernel source target) (kernels : Nat → Kernel source target)
@@ -202,6 +232,46 @@ public theorem IsFinite.iSupIncreasing_of_bound
     (increments : Nat → Kernel source target) : Nat → Kernel source target
   | 0 => Kernel.zero source target
   | count + 1 => Kernel.add (prefixSum increments count) (increments count)
+
+/-- A finite prefix depends only on the increments before its bound. -/
+public theorem prefixSum_congr {first second : Nat → Kernel source target}
+    (count : Nat) (equal : ∀ index, index < count → first index = second index) :
+    prefixSum first count = prefixSum second count := by
+  induction count with
+  | zero => rfl
+  | succ count induction =>
+      rw [prefixSum, prefixSum,
+        induction (fun index earlier => equal index (Nat.lt_trans earlier (Nat.lt_succ_self count))),
+        equal count (Nat.lt_succ_self count)]
+
+/-- Output mapping commutes with each finite prefix of increments. -/
+public theorem map_prefixSum {resultType : Type w} {result : Space resultType}
+    (increments : Nat → Kernel source target) (count : Nat)
+    (function : beta → resultType) (measurable : MeasurableMap target result function) :
+    (prefixSum increments count).map function measurable =
+      prefixSum (fun index => (increments index).map function measurable) count := by
+  induction count with
+  | zero =>
+      change (Kernel.zero source target).map function measurable = Kernel.zero source result
+      apply Kernel.ext
+      intro input
+      exact Measure.map_zero function measurable
+  | succ count induction =>
+      change (Kernel.add (prefixSum increments count) (increments count)).map
+          function measurable =
+        Kernel.add (prefixSum (fun index => (increments index).map function measurable) count)
+          ((increments count).map function measurable)
+      apply Kernel.ext
+      intro input
+      change (Measure.add (prefixSum increments count input) (increments count input)).map
+          function measurable =
+        Measure.add
+          (prefixSum (fun index => (increments index).map function measurable) count input)
+          ((increments count input).map function measurable)
+      rw [Measure.map_add]
+      exact congrArg (fun measure : Measure result =>
+        Measure.add measure ((increments count).map function measurable input))
+        (congrArg (fun kernel : Kernel source result => kernel input) induction)
 
 /-- A prefix evaluates to the partial sum of its increments. -/
 public theorem prefixSum_apply_measurable

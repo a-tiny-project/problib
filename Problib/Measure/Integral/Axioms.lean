@@ -2,6 +2,7 @@ import Problib.Measure.Integral
 import Problib.Measure.Integral.Density.Axioms
 import Problib.Measure.Integral.Lebesgue.Axioms
 import Problib.Measure.Integral.Simple.Axioms
+import Problib.Measure.Integral.Real.Nonnegative
 import Trust.Command
 
 #register_trust_claims allowing [propext, Quot.sound, Classical.choice] claims [
@@ -33,6 +34,7 @@ import Trust.Command
   Problib.Measure.smul_hasRealIntegral,
   Problib.Measure.hasRealIntegral_of_bounded,
   Problib.Measure.HasRealIntegral.lintegral_ofReal,
+  Problib.Measure.HasRealIntegral.of_lintegral_ofReal,
   Problib.Measure.layerCake_measurable,
   Problib.Measure.lintegral_layerCake_fiber,
   Problib.Measure.lintegral_layer_cake,
@@ -42,7 +44,7 @@ import Trust.Command
 
 #audit_registered_claims
 
-#audit_package [Problib.Measure.Integral] allowing [
+#audit_package [Problib.Measure.Integral, Problib.Measure.Integral.Real.Nonnegative] allowing [
   propext,
   Quot.sound,
   Classical.choice

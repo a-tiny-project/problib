@@ -48,7 +48,11 @@ import Trust.Command
   Problib.Measure.Measure.withDensity_eq_iff_aeEq,
   Problib.Measure.Measure.IsDensity.ae_eq,
   Problib.Measure.IntegralParts.ofWithDensity,
-  Problib.Measure.HasRealIntegral.of_withDensity
+  Problib.Measure.HasRealIntegral.of_withDensity,
+  Problib.Measure.densityRatio,
+  Problib.Measure.mul_densityRatio,
+  Problib.Measure.densityRatio_measurable,
+  Problib.Measure.isDensity_densityRatio
 ]
 
 #audit_registered_claims

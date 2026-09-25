@@ -2,187 +2,192 @@
   <img src="logo.svg" alt="Problib" width="360" />
 </p>
 
-# Problib v26.9.2
+# Problib v26.9.3
 
-Probabilistic programming languages express models with uncertain variables,
-observations, and inference. In discrete languages, program semantics denote
-probability mass functions over program states. However, expressive models
-require continuous distributions, density observations, and conditioning on
-zero-probability events. Under continuous variables, standard discrete
-operational semantics break down. Informal pen-and-paper arguments frequently
-conceal soundness bugs when manipulating densities or exchanging integrals.
+problib is a Lean 4 library of the probability theory needed to give a
+probabilistic programming language a precise meaning and to prove facts about
+its programs: real numbers, measures and integrals, probability kernels,
+conditioning, and the conditions under which Monte Carlo inference is correct.
+Every theorem rests on Lean's three standard axioms (`propext`, `Quot.sound`,
+and `Classical.choice`), and the library builds this mathematics itself, without
+Mathlib.
 
-Rigorous semantics for continuous probabilistic programs requires measure theory
-and Lebesgue integration. Yet formalizing these foundations exposes fragile
-mathematical boundaries. For instance, conditioning on continuous observations
-corresponds to measure disintegration. In the general disintegration theorem,
-almost-everywhere conditional kernel uniqueness assumes a sigma-finite second
-marginal. Outside this premise, multiple distinct valid probability kernels can
-emerge under infinite atoms. Similarly, Olav Kallenberg's Randomization Lemma
-([Kallenberg 2021](https://doi.org/10.1007/978-3-030-61871-1)) establishes that
-standard Borel probability kernels decompose into uniform noise and
-deterministic decoders. However, this classical result serves as an existence
-theorem rather than an algorithm. In fact, a zero kernel on an inhabited
-parameter domain admits no randomizer.
+A program whose random choices are discrete denotes a table of probabilities
+over its states. Once it draws from continuous distributions, observes
+densities, or conditions on events of probability zero, it denotes a measure
+instead, and reasoning about it means manipulating densities and exchanging
+integrals. Those steps are easy to get wrong on paper, so problib states each
+one as a theorem with its hypotheses explicit. For example, conditioning on a
+continuous observation is the _disintegration_ of a joint measure. The
+conditional kernel it produces is unique almost everywhere when the second
+marginal is sigma-finite. Without that premise, infinite atoms admit several
+distinct valid kernels.
 
-problib provides a dedicated, self-contained mathematical library in Lean 4
-built from first principles. The project formalizes reusable compositional
-probability mathematics across independent language and verification efforts. It
-proves every theorem under Lean's standard three kernel axioms (`propext`,
-`Quot.sound`, `Classical.choice`) without external dependencies.
+Building without Mathlib keeps a downstream audit small: it reads problib and
+Lean's core. The axioms are the same three either way. The cost is that problib
+develops its own real analysis, measure theory, and integration from first
+principles.
 
-Choosing a self-contained, Mathlib-free architecture controls dependency
-boundaries and audit scope for downstream tools. The kernel axiom ceiling
-remains the standard Lean boundary either way. However, this design choice
-incurs substantial maintenance work, requiring the project to build real
-analysis, measure theory, and integration from first principles.
+[RePPL](https://github.com/a-tiny-project/reppl), a probabilistic programming
+language from the same project, grounds its semantics in problib. RePPL's own
+proof package (its finite calculus) and its certificate checker sit outside this
+library.
 
-Downstream languages like RePPL rely on problib to ground their denotational
-semantics. However, problib does not contain RePPL's finite-calculus proof
-package or prove the RePPL certificate checker correct. Furthermore, classical
-existence theorems for decoders and conditional kernels do not supply general
-algorithms for continuous compilation. Developing continuous higher-order
-probability monads and executable compilers remain active research frontiers.
+## Contents
 
-## Mechanized mathematical layers
+problib holds over 5,000 checked declarations, in layers that build on one
+another:
 
-problib organizes over 5,000 checked production declarations from the
-established baseline into connected layers:
+- **Real numbers:** [Problib/Real.lean](Problib/Real.lean) constructs the reals
+  as Dedekind cuts and proves them a complete ordered field. The nonnegative
+  extended reals (`ENNReal`, with a point at infinity) support sums that commute
+  with monotone suprema.
+- **Measure and integration:** [Problib/Measure.lean](Problib/Measure.lean)
+  builds Carathéodory outer measures from countable covers, and the Borel sets
+  of the reals from half-open intervals. The nonnegative Lebesgue integral comes
+  with monotone convergence, Fatou's lemma, and change of density. The layer
+  also holds the Giry monad, whose `bind` feeds each outcome of a measure
+  through a kernel.
+- **Calculus:** [Problib/Analysis.lean](Problib/Analysis.lean) builds the
+  logarithm, exponential, and square root on the reals, with derivatives, the
+  rules of calculus, and differentiation under the integral sign. It evaluates
+  Gaussian integrals and moments. Multivariate power series converge uniformly
+  on smaller boxes and can be differentiated term by term. A map that splits its
+  domain into countably many analytic pieces, with an analytic function on each,
+  is _piecewise analytic under an analytic partition_ (PAP). Such maps are
+  measurable, and composition, pairing, restriction, and countable gluing
+  preserve them.
+- **Kernels and conditioning:** a _kernel_ maps each parameter to a measure.
+  Measurable s-finite kernels compose and allow the order of integration to be
+  exchanged (Tonelli). Disintegration builds conditional probability kernels for
+  compatible s-finite joint measures on standard Borel spaces, with the
+  uniqueness premise above.
+- **Markov chains:** iterating a kernel runs a Markov chain. When some iterate
+  is bounded below by a fixed measure (a _minorization_), every starting law
+  converges in total variation to a unique invariant law at a geometric rate. On
+  a finite state space, a matrix power with one positive column certifies that
+  bound. A Metropolis–Hastings chain there has it when every state reaches a
+  holding target through moves to positive weight. The layer also defines
+  irreducible, aperiodic, and Harris recurrent chains, and proves, for example,
+  that a chain converging from every start is aperiodic. Chains without a
+  minorization, such as random-walk proposals on unbounded spaces, have no
+  convergence theorem yet.
+- **Randomization:** Kallenberg's randomization lemma
+  ([Kallenberg 2021](https://doi.org/10.1007/978-3-030-61871-1)) writes every
+  standard Borel probability kernel as a measurable function of its parameter
+  and a uniform random number. The lemma asserts that such a function exists and
+  gives no algorithm for finding it. Its hypotheses matter here too: a zero
+  kernel on an inhabited parameter space has no such decomposition.
+- **Higher-order programs:** [Problib/QuasiBorel.lean](Problib/QuasiBorel.lean)
+  formalizes quasi-Borel spaces
+  ([Heunen et al. 2017](https://doi.org/10.1109/LICS.2017.8005137)), a setting
+  for probability in which functions are values. It proves the category
+  Cartesian closed and embeds the standard Borel spaces in it.
+- **Inference:** [Problib/Inference.lean](Problib/Inference.lean) states when
+  the building blocks of Monte Carlo inference are correct. A law of weighted
+  draws is _calibrated_ for a measure when reweighting by the weights recovers
+  the measure, which is what importance sampling needs. Calibration carries over
+  to populations of draws, and resampling and the sequential steps of sequential
+  Monte Carlo preserve it under stated conditions. A Metropolis–Hastings step is
+  in detailed balance when its accepted part is symmetric, so it leaves its
+  target invariant. Companion results show why weaker conditions fail: for
+  example, the reciprocal of an unbiased density estimate is a biased weight.
+- **Exact counting:**
+  [Problib/Inference/KnowledgeCompilation.lean](Problib/Inference/KnowledgeCompilation.lean)
+  checks compiled Boolean circuits. An untrusted compiler turns a circuit into
+  an ordered decision diagram and supplies a certificate: a graph of local
+  if-then-else identities, with no truth tables. When the checker accepts, the
+  diagram agrees with the circuit on every input. A checked diagram's weighted
+  count equals the integral of its output over independent Bernoulli inputs, so
+  the probability that a circuit returns true is a count over its diagram.
 
-- **Real analysis from Dedekind cuts:** [Problib/Real.lean](Problib/Real.lean)
-  constructs real numbers as Dedekind cuts, proving completeness as an ordered
-  field. Nonnegative extended reals (`ENNReal`) provide infinity-aware summation
-  commuting with monotone suprema.
-- **Continuous measure and Lebesgue integration:**
-  [Problib/Measure.lean](Problib/Measure.lean) develops Carathéodory outer
-  measures from countable covers. Half-open intervals generate standard Borel
-  spaces. Nonnegative Lebesgue integration formalizes monotone convergence,
-  Fatou's lemma, and density transforms.
-- **S-finite kernels and Bayesian disintegration:** Measurable s-finite kernels
-  compose and support Tonelli integral exchange. Disintegration theorems
-  construct conditional probability kernels for compatible s-finite joint
-  measures on standard Borel spaces. Conditional uniqueness holds almost
-  everywhere under sigma-finite second marginals.
-- **Randomization foundations:** problib formalizes Olav Kallenberg's
-  Randomization Lemma
-  ([Kallenberg 2021](https://doi.org/10.1007/978-3-030-61871-1)). Every standard
-  Borel probability kernel decomposes into a uniform source and a measurable
-  decoder.
-- **Higher-order Quasi-Borel spaces:**
-  [Problib/QuasiBorel.lean](Problib/QuasiBorel.lean) formalizes Quasi-Borel
-  spaces ([Heunen et al. 2017](https://doi.org/10.1109/LICS.2017.8005137)),
-  establishing Cartesian closure and standard Borel embeddings for higher-order
-  probabilistic semantics.
-
-## Classical existence and trust boundaries
-
-The library maintains a strict distinction between mathematical existence and
-computational realization:
-
-- **Mathematical existence:** Theorems like Kallenberg's randomization lemma and
-  measure disintegration establish that measurable decoders and conditional
-  kernels exist under explicit hypotheses. They do not supply general algorithms
-  to compute decoders for arbitrary continuous distributions.
-- **Downstream integration:** Downstream languages like RePPL use problib to
-  justify semantic correctness. Compiling continuous kernels into executable
-  code remains an active research direction.
-- **Mechanized status:** Real analysis, measure theory, s-finite kernels, and
-  Giry monad properties are fully mechanized in Lean 4, passing independent
-  axiom audits.
+Compiling continuous kernels into executable code remains open research.
 
 ## Use
 
-Build the library with Nix:
+`nix build` runs the package checks and installs the checked sources under
+`result/share/problib/`. problib is a library, so it installs no executable.
 
 ```sh
 nix build
 ```
 
-`nix build` runs package checks and installs checked library sources to
-`result/share/problib/`. problib is a library package. It does not install a
-standalone command-line executable in `bin/`.
-
-Enter the development shell and compile with Lake:
+The development shell supplies Lean and Lake. Inside it, `lake build` compiles
+the library, and three targets run the axiom audits and the tests of the audit
+itself:
 
 ```sh
 nix develop --command lake build
-```
-
-Run axiom audits and trust validation targets:
-
-```sh
 nix develop --command lake build Problib.Axioms Trust.Axioms TrustTest
 ```
 
-To consume problib as a Lake dependency in a downstream package:
+A Lake package depends on problib from its `lakefile.lean`:
 
 ```lean
 require problib from git
-  "https://github.com/a-tiny-project/problib.git" @ "v26.9.2"
+  "https://github.com/a-tiny-project/problib.git" @ "v26.9.3"
 ```
 
-Or, in `lakefile.toml`:
+or from its `lakefile.toml`:
 
 ```toml
 [[require]]
 name = "problib"
 git = "https://github.com/a-tiny-project/problib.git"
-rev = "v26.9.2"
+rev = "v26.9.3"
 ```
 
-Then fetch it and import the library:
+`lake update problib` then fetches it, and `import Problib` brings in the
+library. problib is checked under `leanprover/lean4:v4.31.0`, so the depending
+package's `lean-toolchain` should name the same release.
 
-```sh
-lake update problib
-```
+## Audit
 
-```lean
-import Problib
-```
+The `Trust` framework audits what each declaration's proof depends on. The
+package audit in [Problib/Axioms.lean](Problib/Axioms.lean) covers every
+constant that `Problib` modules define: the declarations written in source, and
+the equation lemmas, matchers, and other auxiliaries Lean generates from them.
+Every declaration's axioms are among `propext`, `Quot.sound`, and
+`Classical.choice`. The tests in `TrustTest` check that the audit rejects a
+custom axiom, an unsafe declaration, and an unproved `sorry`.
 
-Ensure your project uses the pinned Lean toolchain: `leanprover/lean4:v4.31.0`.
+The audit covers proofs, and a theorem's statement keeps its hypotheses: a user
+of the theorem still has to establish them.
 
 ## Module map
 
-- [Problib/Real.lean](Problib/Real.lean): Dedekind real numbers, order
-  completeness, and nonnegative extended arithmetic.
-- [Problib/Measure.lean](Problib/Measure.lean): Carathéodory outer measures,
-  Borel algebras, and Lebesgue integration.
-- [Problib/Probability.lean](Problib/Probability.lean): Probability spaces,
-  finite distributions, and measure interpretations.
-- [Problib/QuasiBorel.lean](Problib/QuasiBorel.lean): Quasi-Borel spaces,
+- [Problib/Real.lean](Problib/Real.lean): Dedekind reals, order completeness,
+  and nonnegative extended arithmetic.
+- [Problib/Measure.lean](Problib/Measure.lean): outer measures, Borel sets,
+  Lebesgue integration, kernels and their iteration, disintegration,
+  randomization, and the Giry monad.
+- [Problib/Probability.lean](Problib/Probability.lean): finite distributions
+  with nonnegative rational weights, and finite sets.
+- [Problib/QuasiBorel.lean](Problib/QuasiBorel.lean): quasi-Borel spaces,
   Cartesian closure, and Borel embeddings.
-- [Problib/Linear.lean](Problib/Linear.lean): Vector spaces and rational linear
-  algebra.
-- [Problib/Algebra.lean](Problib/Algebra.lean): Core algebraic structures and
-  ordering properties.
-- [Problib/Power.lean](Problib/Power.lean): Integer and rational exponentiation.
-- [Problib/Axioms.lean](Problib/Axioms.lean): Audit manifest verifying standard
-  axiom bounds across production declarations.
-- [Trust.lean](Trust.lean): Metaprogramming audit framework detecting unsafe
-  declarations and unproved goals.
-- [TrustTest.lean](TrustTest.lean): Verification tests confirming rejection of
-  custom axioms and unproved obligations.
-
-## Verification scope and trust boundaries
-
-problib enforces strict verification discipline through the `Trust` framework.
-Production audits verify that over 5,000 declarations rely solely on Lean's
-standard three axioms: `propext`, `Quot.sound`, and `Classical.choice`. The
-package audit in [Problib/Axioms.lean](Problib/Axioms.lean) checks every
-constant that `Problib` modules define: the declarations written in source and
-the equation lemmas, matchers, and other auxiliaries Lean generates from them.
-
-Test suites in `TrustTest` verify that the audit framework detects and rejects
-custom project axioms, unsafe declarations, and unproved `sorry` holes.
-
-Axiom audits confirm the absence of unproved holes. They do not eliminate
-explicit mathematical hypotheses from theorem statements.
-
-## References
-
-- Repository:
-  [https://github.com/a-tiny-project/problib](https://github.com/a-tiny-project/problib)
+- [Problib/Inference.lean](Problib/Inference.lean): weighting, resampling,
+  sequential Monte Carlo, Metropolis–Hastings, invariance of Markov kernels,
+  checked decision diagrams, derivative estimators, and generative functions.
+- [Problib/Analysis.lean](Problib/Analysis.lean): logarithm, exponential, square
+  root, derivatives, Gaussian integrals, power series, PAP maps, and inverses of
+  monotone functions.
+- [Problib/Domain.lean](Problib/Domain.lean): complete partial orders,
+  continuous maps, and fixed points reached by iteration.
+- [Problib/Linear.lean](Problib/Linear.lean): rational matrices, sums, and
+  duals.
+- [Problib/Algebra.lean](Problib/Algebra.lean): laws of commutative monoids,
+  groups, and semirings.
+- [Problib/Countable.lean](Problib/Countable.lean): bijections, pairing
+  enumerations, and decoding bounds for countable structures.
+- [Problib/FiniteEnumeration.lean](Problib/FiniteEnumeration.lean): lists that
+  enumerate every value of a finite type.
+- [Problib/Power.lean](Problib/Power.lean): `Power α n`, the length-indexed
+  vectors of `n` values of type `α`.
+- [Problib/Axioms.lean](Problib/Axioms.lean): the audit manifest for the
+  library's declarations.
+- [Trust.lean](Trust.lean): the audit framework, which rejects custom axioms,
+  unsafe declarations, and unproved goals.
+- [TrustTest.lean](TrustTest.lean): the audit's own tests.
 
 ## License
 

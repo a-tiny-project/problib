@@ -329,4 +329,32 @@ public theorem lintegral_piecewise (measure : Measure space) {region : Set alpha
     lintegral_indicator measure region measurable inside,
     lintegral_indicator measure (Set.complement region) (space.complement measurable) outside]
 
+open SimpleFunction (finiteSum)
+
+/-- A finite sum of measurable integrands is measurable. -/
+public theorem ENNRealMeasurable.finiteSum_map {Index : Type} (indices : List Index)
+    {values : Index → alpha → ENNReal}
+    (measurable : ∀ index, ENNRealMeasurable space (values index)) :
+    ENNRealMeasurable space
+      (fun input => finiteSum (indices.map fun index => values index input)) := by
+  induction indices with
+  | nil => exact ENNRealMeasurable.constant space ENNReal.zero
+  | cons index indices induction => exact ENNRealMeasurable.add (measurable index) induction
+
+/-- Integration is additive over a finite sum of measurable integrands. -/
+public theorem lintegral_finiteSum_map (measure : Measure space) {Index : Type}
+    (indices : List Index) {values : Index → alpha → ENNReal}
+    (measurable : ∀ index, ENNRealMeasurable space (values index)) :
+    lintegral measure (fun input => finiteSum (indices.map fun index => values index input)) =
+      finiteSum (indices.map fun index => lintegral measure (values index)) := by
+  induction indices with
+  | nil => exact lintegral_zero measure
+  | cons index indices induction =>
+      show lintegral measure (fun input => ENNReal.add (values index input)
+          (finiteSum (indices.map fun index => values index input))) =
+        ENNReal.add (lintegral measure (values index))
+          (finiteSum (indices.map fun index => lintegral measure (values index)))
+      rw [lintegral_add measure (measurable index)
+          (ENNRealMeasurable.finiteSum_map indices measurable), induction]
+
 end Problib.Measure

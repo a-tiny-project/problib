@@ -4,6 +4,7 @@ public import Problib.Measure.Kernel.Product.Algebra
 public import Problib.Measure.Kernel.Product.AlmostEverywhere
 public import Problib.Measure.Kernel.Product.Piecewise
 public import Problib.Measure.Kernel.Product.Uniqueness
+public import Problib.Measure.Kernel.Density
 public import Problib.Measure.Integral.Density.Basic
 import Problib.Measure.Integral.Lebesgue.Transport
 import Problib.Measure.Kernel.Measurable
@@ -199,6 +200,59 @@ public theorem Measure.semiproduct_withDensity_left (measure : Measure source)
   apply lintegral_congr
   intro input
   exact (lintegral_smul _ _ (indicatorMeasurable.comp (Kernel.pair_left_measurable input))).symm
+
+
+/-- A density in both coordinates of a semiproduct multiplies the factors.
+The second density may depend on the first coordinate. -/
+public theorem Measure.semiproduct_withDensity
+    (measure : Measure source)
+    (kernel : Kernel source target) (kernelFinite : Kernel.IsSFinite kernel)
+    {p : alpha → ENNReal} (pMeasurable : ENNRealMeasurable source p)
+    {q : alpha → beta → ENNReal}
+    (qMeasurable : ENNRealMeasurable (Space.product source target)
+      (fun pair => q pair.1 pair.2)) :
+    (measure.withDensity p).semiproduct
+      (kernel.withDensity kernelFinite q qMeasurable)
+      (Kernel.IsSFinite.withDensity kernelFinite q qMeasurable) =
+    (measure.semiproduct kernel kernelFinite).withDensity
+      (fun pair => ENNReal.mul (p pair.1) (q pair.1 pair.2)) := by
+  let qOnProduct : alpha × beta → ENNReal := fun pair => q pair.1 pair.2
+  have right (base : Measure source) :
+      base.semiproduct (kernel.withDensity kernelFinite q qMeasurable)
+          (Kernel.IsSFinite.withDensity kernelFinite q qMeasurable) =
+        (base.semiproduct kernel kernelFinite).withDensity qOnProduct := by
+    apply Measure.ext
+    intro E hE
+    let indicator : alpha × beta → ENNReal :=
+      ennrealIndicator E fun _ => ENNReal.one
+    have indicatorMeasurable : ENNRealMeasurable
+        (Space.product source target) indicator :=
+      ENNRealMeasurable.indicator hE (ENNRealMeasurable.constant _ _)
+    rw [apply_eq_lintegral_indicator _ hE,
+      apply_eq_lintegral_indicator _ hE,
+      lintegral_semiproduct _ _ _ indicatorMeasurable,
+      lintegral_withDensity _ qMeasurable indicatorMeasurable,
+      lintegral_semiproduct _ _ _
+        (ENNRealMeasurable.mul qMeasurable indicatorMeasurable)]
+    apply lintegral_congr
+    intro input
+    exact Kernel.lintegral_withDensity kernel kernelFinite qMeasurable input
+      (indicatorMeasurable.comp (Kernel.pair_left_measurable input))
+  have pOnProduct : ENNRealMeasurable (Space.product source target)
+      (fun pair : alpha × beta => p pair.1) :=
+    pMeasurable.comp (Space.first_measurable source target)
+  calc
+    (measure.withDensity p).semiproduct
+        (kernel.withDensity kernelFinite q qMeasurable)
+        (Kernel.IsSFinite.withDensity kernelFinite q qMeasurable) =
+      ((measure.withDensity p).semiproduct kernel kernelFinite).withDensity
+        qOnProduct := right _
+    _ = ((measure.semiproduct kernel kernelFinite).withDensity
+        (fun pair => p pair.1)).withDensity qOnProduct := by
+      rw [Measure.semiproduct_withDensity_left measure pMeasurable kernel kernelFinite]
+    _ = (measure.semiproduct kernel kernelFinite).withDensity
+        (fun pair => ENNReal.mul (p pair.1) (q pair.1 pair.2)) :=
+      Measure.withDensity_withDensity _ pOnProduct qMeasurable
 
 /-- Integration against a reverse semiproduct follows its sampling order. -/
 public theorem lintegral_reverseSemiproduct (measure : Measure target)

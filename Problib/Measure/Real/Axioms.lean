@@ -1,4 +1,5 @@
 import Problib.Measure.Real
+import Problib.Measure.Real.Density
 import Trust.Command
 
 #register_trust_claims allowing [propext, Quot.sound, Classical.choice] claims [
@@ -148,12 +149,15 @@ import Trust.Command
   Problib.Measure.Real.unitBorel_generated_initials,
   Problib.Measure.Real.unitInitials_pi,
   Problib.Measure.Real.unitInitials_univ,
-  Problib.Measure.Real.finite_measure_ext_unitInitial
+  Problib.Measure.Real.finite_measure_ext_unitInitial,
+  Problib.Measure.Real.uniform01_volume_density,
+  Problib.Measure.Real.uniform01_prod_diagonal_null
 ]
 
 #audit_registered_claims
 
-#audit_package [Problib.Measure.Real] allowing [
+#audit_package [Problib.Measure.Real,
+  Problib.Measure.Real.Density] allowing [
   propext,
   Quot.sound,
   Classical.choice

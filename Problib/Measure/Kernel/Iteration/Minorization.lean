@@ -27,6 +27,35 @@ public structure Minorization (kernel : Kernel space space) (steps : Nat)
       ((Measure.smul (ENNReal.finite weight) reference.val) event)
       ((Kernel.iterate kernel steps input) event)
 
+/-- A uniform lower bound on one positive iterate of a Markov kernel, from
+every state of `region`. -/
+public structure MinorizationOn (kernel : Kernel space space) (region : Set α)
+    (steps : Nat) (weight : NNReal) (reference : Giry.Law space) : Prop where
+  markov : ∀ input, Measure.IsProbability (kernel input)
+  stepsPositive : 0 < steps
+  weightPositive : NNReal.lt NNReal.zero weight
+  weightAtMostOne : NNReal.le weight NNReal.one
+  lower : ∀ input, region input → ∀ event, space.Measurable event →
+    ENNReal.le
+      ((Measure.smul (ENNReal.finite weight) reference.val) event)
+      ((Kernel.iterate kernel steps input) event)
+
+/-- A global minorization is exactly a local minorization on the whole
+state space. -/
+public theorem minorization_on_univ (kernel : Kernel space space) (steps : Nat)
+    (weight : NNReal) (reference : Giry.Law space) :
+    Minorization kernel steps weight reference ↔
+      MinorizationOn kernel Set.univ steps weight reference := by
+  constructor
+  · intro minor
+    exact ⟨minor.markov, minor.stepsPositive, minor.weightPositive,
+      minor.weightAtMostOne, fun input _ event measurable =>
+        minor.lower input event measurable⟩
+  · intro minor
+    exact ⟨minor.markov, minor.stepsPositive, minor.weightPositive,
+      minor.weightAtMostOne, fun input event measurable =>
+        minor.lower input (by trivial) event measurable⟩
+
 /-- Every finite iterate of a Markov kernel remains Markov. -/
 public theorem iterate_isProbability (kernel : Kernel space space)
     (markov : ∀ input, Measure.IsProbability (kernel input))
@@ -305,7 +334,8 @@ public theorem minorization_contraction
   rw [← iterateLaw_add, division] at combined
   exact combined
 
-private theorem minorization_decay_base_lt_one
+/-- A positive minorization weight leaves a contraction factor below one. -/
+public theorem minorization_decay_base_lt_one
     {kernel : Kernel space space} {steps : Nat} {weight : NNReal}
     {reference : Giry.Law space}
     (minor : Minorization kernel steps weight reference) :

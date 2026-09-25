@@ -5,3 +5,12 @@ import Problib.Inference.Derivative
 import Problib.Inference.Generative
 import Problib.Inference.Generative.Bind
 import Problib.Inference.Trace
+import Problib.Inference.KnowledgeCompilation
+import Problib.Inference.Weighting
+import Problib.Inference.Population
+import Problib.Inference.Resampling
+import Problib.Inference.Sequential
+import Problib.Inference.Necessity.Weighting
+import Problib.Inference.Necessity.Population
+import Problib.Inference.Necessity.Resampling
+import Problib.Inference.Necessity.Sequential

@@ -41,6 +41,7 @@ import Trust.Command
   Problib.Measure.Measure.bind_const,
   Problib.Measure.Measure.dirac_bind,
   Problib.Measure.Measure.bind_deterministic,
+  Problib.Measure.Measure.bind_congr_ae,
   Problib.Measure.Measure.bind_sum_left,
   Problib.Measure.Measure.bind_sum_right,
   Problib.Measure.Measure.SFinite.bind,

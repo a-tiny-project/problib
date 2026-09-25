@@ -1,6 +1,8 @@
 module
 
 public import Problib.Measure.Kernel.Composition.Bind.Core
+public import Problib.Measure.AlmostEverywhere
+public import Problib.Measure.Integral.Lebesgue.AlmostEverywhere
 import Problib.Measure.Integral.Lebesgue.Algebra
 import Problib.Measure.Integral.Lebesgue.Measure
 import Problib.Measure.Integral.Lebesgue.Transport
@@ -228,6 +230,18 @@ public noncomputable def bind {measure : Measure source}
 
 end SFinite
 
+/-- Pointwise equality of kernel fibers almost everywhere under the incoming
+measure is enough for equality of binds. -/
+public theorem bind_congr_ae (measure : Measure source)
+    {left right : Kernel source target}
+    (equal : measure.AEEq (fun x => left x) (fun x => right x)) :
+    measure.bind left = measure.bind right := by
+  apply Measure.ext
+  intro E hE
+  rw [Measure.bind_apply measure left hE,
+    Measure.bind_apply measure right hE]
+  apply lintegral_congr_ae
+  exact equal.mono (fun x same => congrArg (fun μ => μ E) same)
 end Measure
 
 end Problib.Measure
