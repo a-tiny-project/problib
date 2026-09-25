@@ -1,37 +1,21 @@
 <p align="center">
-  <img src="logo.svg" alt="Problib" width="360" />
+  <img src="logo.svg" alt="Problib" width="300" />
 </p>
 
 # Problib v26.9.3
 
-problib is a Lean 4 library of the probability theory needed to give a
-probabilistic programming language a precise meaning and to prove facts about
-its programs: real numbers, measures and integrals, probability kernels,
+`problib` is a Lean 4 library of the probability theory needed to give
+probabilistic programming languages precise meaning, and to prove facts about
+their programs.
+
+It contains foundational theory of the real numbers, measures and integrals, probability kernels,
 conditioning, and the conditions under which Monte Carlo inference is correct.
-Every theorem rests on Lean's three standard axioms (`propext`, `Quot.sound`,
+
+Every theorem in the library rests on Lean's three standard axioms (`propext`, `Quot.sound`,
 and `Classical.choice`), and the library builds this mathematics itself, without
-Mathlib.
-
-A program whose random choices are discrete denotes a table of probabilities
-over its states. Once it draws from continuous distributions, observes
-densities, or conditions on events of probability zero, it denotes a measure
-instead, and reasoning about it means manipulating densities and exchanging
-integrals. Those steps are easy to get wrong on paper, so problib states each
-one as a theorem with its hypotheses explicit. For example, conditioning on a
-continuous observation is the _disintegration_ of a joint measure. The
-conditional kernel it produces is unique almost everywhere when the second
-marginal is sigma-finite. Without that premise, infinite atoms admit several
-distinct valid kernels.
-
-Building without Mathlib keeps a downstream audit small: it reads problib and
-Lean's core. The axioms are the same three either way. The cost is that problib
-develops its own real analysis, measure theory, and integration from first
-principles.
-
-[RePPL](https://github.com/a-tiny-project/reppl), a probabilistic programming
-language from the same project, grounds its semantics in problib. RePPL's own
-proof package (its finite calculus) and its certificate checker sit outside this
-library.
+Mathlib (for speed of compilation, although we sync and take content 
+from Mathlib where required, with proper license
+attribution).
 
 ## Contents
 
@@ -100,8 +84,6 @@ problib is constructed in layers that build on each other:
   count equals the integral of its output over independent Bernoulli inputs, so
   the probability that a circuit returns true is a count over its diagram.
 
-Compiling continuous kernels into executable code remains open research.
-
 ## Use
 
 `nix build` runs the package checks and installs the checked sources under
@@ -142,8 +124,8 @@ package's `lean-toolchain` should name the same release.
 
 ## Audit
 
-The `Trust` framework audits what each declaration's proof depends on. The
-package audit in [Problib/Axioms.lean](Problib/Axioms.lean) covers every
+Problib makes usage of a `Trust` framework, which audits what each declaration's proof depends on. 
+The package audit in [Problib/Axioms.lean](Problib/Axioms.lean) covers every
 constant that `Problib` modules define: the declarations written in source, and
 the equation lemmas, matchers, and other auxiliaries Lean generates from them.
 Every declaration's axioms are among `propext`, `Quot.sound`, and
