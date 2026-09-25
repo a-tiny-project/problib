@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="logo.svg" alt="Problib" width="300" />
+  <img src="logo.svg" alt="Problib" width="200" />
 </p>
 
 # Problib v26.9.3
