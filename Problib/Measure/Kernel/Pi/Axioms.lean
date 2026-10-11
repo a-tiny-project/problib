@@ -1,0 +1,57 @@
+import Problib.Measure.Kernel.Pi
+import Trust.Command
+
+#register_trust_claims allowing [propext, Quot.sound, Classical.choice] claims [
+  Problib.Measure.Pi.IsProduct,
+  Problib.Measure.Pi.IsProduct.probability,
+  Problib.Measure.Pi.IsProduct.coordinate,
+  Problib.Measure.Pi.IsProduct.pair,
+  Problib.Measure.Pi.IsProduct.pair_prod,
+  Problib.Measure.Pi.IsProduct.ext,
+  Problib.Measure.Pi.IsProduct.of_determining,
+  Problib.Measure.Pi.IsProduct.map,
+  Problib.Measure.Pi.IsProduct.reindex,
+  Problib.Measure.Pi.IsProduct.blocks,
+  Problib.Measure.Pi.IsProduct.uncurry,
+  Problib.Measure.Pi.IsProduct.sum,
+  Problib.Measure.Pi.massProduct_perm,
+  Problib.Measure.Pi.IsProduct.update,
+  Problib.Measure.Pi.IsProduct.redraw,
+  Problib.Measure.Pi.IsProduct.reads,
+  Problib.Measure.Pi.IsProduct.lintegral_read,
+  Problib.Measure.Pi.IsProduct.cons,
+  Problib.Measure.Pi.massProduct_mul,
+  Problib.Measure.Pi.massProduct_one,
+  Problib.Measure.Pi.massProduct_measurable,
+  Problib.Measure.Pi.massProduct_indicator,
+  Problib.Measure.Pi.massProduct_group,
+  Problib.Measure.Pi.IsProduct.lintegral_massProduct,
+  Problib.Measure.Pi.IsProduct.lintegral_reads,
+  Problib.Measure.Pi.IsProduct.collapse,
+  Problib.Measure.Measure.bind_scaled,
+  Problib.Measure.Measure.map_bind_scaled,
+  Problib.Measure.Pi.replace,
+  Problib.Measure.Pi.replace_same,
+  Problib.Measure.Pi.replace_other,
+  Problib.Measure.Pi.replace_self,
+  Problib.Measure.Pi.apply_replace,
+  Problib.Measure.Pi.replace_measurable,
+  Problib.Measure.Pi.Determining.singletons,
+  Problib.Measure.Pi.determining_cylinders,
+  Problib.Measure.Kernel.pi,
+  Problib.Measure.Kernel.pi_apply,
+  Problib.Measure.Kernel.pi_probability,
+  Problib.Measure.Kernel.pi_finite,
+  Problib.Measure.Kernel.pi_coordinate,
+  Problib.Measure.Kernel.pi_isProduct,
+  Problib.Measure.Kernel.pi_pair,
+  Problib.Measure.Kernel.pi_independent,
+  Problib.Measure.Kernel.pi_unique,
+  Problib.Measure.Kernel.pi_apply_congr,
+  Problib.Measure.Kernel.pi_congr,
+  Problib.Measure.Kernel.exists_pi_of_standardBorel
+]
+
+#audit_registered_claims
+
+#audit_package [Problib.Measure.Kernel.Pi] allowing [propext, Quot.sound, Classical.choice]
