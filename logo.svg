@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128" role="img" aria-label="Problib: an inchworm measuring along a rule">
+  <style>
+    .i { fill: #111315; }
+    .r { fill: #c9361a; }
+    .t { fill: #11767a; }
+    path { fill-rule: evenodd; }
+    @media (prefers-color-scheme: dark) {
+      .i { fill: #ece3d2; }
+      .r { fill: #fb4934; }
+      .t { fill: #3fb8b8; }
+    }
+  </style>
+  <path class="i" d="M19 71H32.5V45.3A31.3 31.3 0 0 1 95 45.3V91A20 20 0 0 1 75 71V45.3A11.3 11.3 0 0 0 52.5 45.3V71A20 20 0 0 1 32.5 91H19A10 10 0 0 1 19 71Z"/>
+  <path class="t" d="M4 98H15.2V107.5H18.8V98H38.8V104.5H42.2V98H62.2V107.5H65.8V98H85.8V104.5H89.2V98H109.2V107.5H112.8V98H124V116H4Z"/>
+  <path class="r" d="M98 79.5A11 11 0 1 0 120 79.5A11 11 0 1 0 98 79.5ZM108.8 77.5A2.4 2.4 0 1 0 113.6 77.5A2.4 2.4 0 1 0 108.8 77.5Z"/>
+</svg>
